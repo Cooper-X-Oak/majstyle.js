@@ -8,6 +8,3 @@ Thumbs.db
 testversion/
 dev/
 
-# 构建输出
-dist/
-
