@@ -229,6 +229,39 @@ git config --global https.proxy http://127.0.0.1:7897
 - Direct connection blocked: Try proxy or wait for network stability
 - Both fail: Commits are safe locally, push later when network is stable
 
+## Version Management
+
+### Version Number Format
+
+This project follows Semantic Versioning (SemVer):
+- **Major.Minor.Patch** (e.g., 2.1.0)
+- **Pre-release**: Major.Minor.Patch-beta.N (e.g., 2.1.0-beta.1)
+
+### Single Source of Truth
+
+Version numbers are defined in ONE place only:
+- **Primary**: `src/config/metadata.js` - USERSCRIPT_METADATA.version
+- **Derived**: `package.json` - version field (should match metadata.js)
+- **Dynamic**: `rollup.config.js` - uses template literal to read from metadata.js
+
+### Updating Versions
+
+When releasing a new version:
+1. Update version in `src/config/metadata.js`
+2. Update version in `package.json` to match
+3. Run `npm run build` - output filename will automatically use the new version
+4. Update `CHANGELOG.md` with changes
+5. Commit with message: `chore: bump version to X.Y.Z`
+6. Create git tag: `git tag vX.Y.Z`
+7. Push with tags: `git push && git push --tags`
+
+### Pre-release Versions
+
+For beta releases:
+- Use format: `X.Y.Z-beta.N` (e.g., 2.1.0-beta.1)
+- Increment N for each beta iteration
+- Remove `-beta.N` suffix when releasing stable version
+
 ## Important Notes
 
 - The script uses a 1-second polling interval to detect player changes

@@ -20,7 +20,7 @@
 
 ### 快速安装（推荐）
 
-**一键安装链接**：[点击安装脚本](https://github.com/Cooper-X-Oak/majstyle.js/raw/main/dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js)
+**一键安装链接**：[点击安装脚本](https://github.com/Cooper-X-Oak/majstyle.js/raw/main/dist/雀魂金玉四麻风格分析助手-v2.1.0-beta.1.user.js)
 
 > 前提：需要先安装 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展
 
@@ -36,14 +36,14 @@
 #### 2. 安装脚本
 
 **方法 1：拖拽安装**
-1. 找到文件：`dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js`
+1. 找到文件：`dist/雀魂金玉四麻风格分析助手-v2.1.0-beta.1.user.js`
 2. 直接拖拽到浏览器窗口
 3. Tampermonkey 会自动弹出安装页面，点击"安装"
 
 **方法 2：复制粘贴**
 1. 点击 Tampermonkey 图标 → 管理面板
 2. 点击"+"号创建新脚本
-3. 复制 `dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js` 的全部内容
+3. 复制 `dist/雀魂金玉四麻风格分析助手-v2.1.0-beta.1.user.js` 的全部内容
 4. 粘贴到编辑器，保存（Ctrl+S）
 
 ### 使用
@@ -52,11 +52,9 @@
 2. 进入金之间或玉之间的四麻对局
 3. 等待2-3秒，自动显示分析结果
 
-### 🔍 数据探索功能（新增）
+### 🔍 数据探索功能
 
-按 `Ctrl+Alt+E` 可以触发数据探索模式，查看完整的 API 数据和游戏对象结构。详见 [docs/使用指南.md](docs/使用指南.md)
-
-详细安装指南请参考 [docs/installation.md](docs/installation.md)
+按 `Ctrl+Alt+E` 可以触发数据探索模式，查看完整的 API 数据和游戏对象结构。
 
 ## 📊 数据说明
 
@@ -77,7 +75,7 @@
 - 🟢 **绿色**：低于段位平均（负偏差）
 - 颜色深浅表示偏差程度
 
-详细使用说明请参考 [docs/usage.md](docs/usage.md)
+详细使用说明请参考 [CLAUDE.md](CLAUDE.md)
 
 ## 🔒 合规性说明
 
@@ -117,14 +115,14 @@ npm run watch
 npm run build
 
 # 输出文件
-dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js
+dist/雀魂金玉四麻风格分析助手-v2.1.0-beta.1.user.js
 ```
 
-详细开发指南请参考 [docs/development.md](docs/development.md)
+详细开发指南请参考 [CLAUDE.md](CLAUDE.md)
 
 ## 📝 版本历史
 
-当前版本：**v2.0.0**（2026-03-14）
+当前版本：**v2.1.0-beta.1**（2026-03-14）
 
 完整版本历史请参考 [CHANGELOG.md](CHANGELOG.md)
 
@@ -155,6 +153,34 @@ MIT License
 ## 📮 反馈
 
 如有问题或建议，欢迎提交 Issue。
+
+---
+
+## 📚 文档导航
+
+### 用户文档
+- [安装指南](docs/user/installation.md) - Tampermonkey 安装和脚本安装步骤
+- [使用指南](docs/user/usage.md) - 界面说明、数据解读、功能使用
+
+### 开发者文档
+- [开发指南 (CLAUDE.md)](CLAUDE.md) - 核心开发指南，包含项目概述、架构、构建系统、开发规范
+- [详细开发文档](docs/development/development.md) - 项目结构、技术栈、代码风格、测试方法、开发工具
+- [游戏对象结构](docs/game/GAME_OBJECT_STRUCTURE.md) - 雀魂游戏对象档案、可访问的 window 对象
+- [API 数据结构](docs/api/API_DATA_STRUCTURE.md) - 牌谱屋 API 完整数据结构
+- [API 字段分析](docs/api/API_FIELDS_ANALYSIS.md) - 51 个 API 字段完整分析和价值评估
+
+### 开发过程记录（仅供 Claude 参考）
+- [实施路线图](docs/development/IMPLEMENTATION_ROADMAP.md) - Phase 0-3 规划和功能开发计划
+- [Phase 0 完成总结](docs/development/PHASE0_COMPLETE.md) - 数据探索成果和 API 字段发现
+- [Phase 1 实施报告](docs/development/PHASE1_IMPLEMENTATION.md) - 建议生成器重构和新增功能详解
+
+### 项目管理
+- [变更日志 (CHANGELOG.md)](CHANGELOG.md) - 版本历史和更新内容
+- [开源协议 (LICENSE)](LICENSE) - MIT License
+
+### 归档文档
+- [Claude 过程记录归档](archive/process-logs/) - 已完成的问题修复和优化记录
+- [历史版本归档](archive/) - pro-series, v1.x, v2.x 历史版本
 
 ---
 

@@ -1,5 +1,6 @@
 import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
+import { USERSCRIPT_METADATA } from './src/config/metadata.js';
 
 function generateMetadataHeader(meta) {
   var lines = ['// ==UserScript=='];
@@ -21,24 +22,13 @@ function generateMetadataHeader(meta) {
   return lines.join('\n');
 }
 
-// Metadata configuration
-var metadata = {
-  name: '雀魂金玉四麻风格分析助手',
-  namespace: 'http://tampermonkey.net/',
-  version: '2.1.0-beta.1',
-  description: '金之间/玉之间四人麻将对手风格实时分析（基于牌谱屋数据）- Phase 1 测试版',
-  match: [
-    'https://game.maj-soul.com/*',
-    'https://game.maj-soul.net/*'
-  ],
-  grant: ['GM_xmlhttpRequest', 'unsafeWindow'],
-  connect: ['5-data.amae-koromo.com']
-};
+// Import metadata from single source of truth
+var metadata = USERSCRIPT_METADATA;
 
 export default {
   input: 'src/main.js',
   output: {
-    file: 'dist/雀魂金玉四麻风格分析助手-v2.1.0-beta.1.user.js',
+    file: `dist/雀魂金玉四麻风格分析助手-v${metadata.version}.user.js`,
     format: 'iife',
     banner: generateMetadataHeader(metadata)
   },

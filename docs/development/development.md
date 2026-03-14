@@ -611,4 +611,60 @@ if (某个条件) 标签.push('新标签');
 
 ---
 
+## 开发工具
+
+`tools/` 目录包含用于开发和测试的实用工具。
+
+### Web 工具
+
+#### API Explorer (`tools/web-tools/api-explorer.html`)
+
+交互式工具，用于探索牌谱屋 API：
+- 测试 API 端点和自定义参数
+- 查看原始 JSON 响应
+- 分析玩家统计数据
+- 实验不同的时间范围和模式
+
+**使用方法**：
+1. 在浏览器中打开 `tools/web-tools/api-explorer.html`
+2. 输入玩家 ID (account_id)
+3. 选择时间范围和游戏模式
+4. 点击 "Fetch Data" 查看结果
+
+### 验证脚本
+
+#### 构建验证 (`tools/verification/phase1-verification.js`)
+
+验证构建输出：
+- 检查 userscript 元数据格式
+- 验证版本一致性
+- 确保所有必需字段存在
+- 验证文件结构
+
+**使用方法**：
+```bash
+node tools/verification/phase1-verification.js
+```
+
+### 脚本工具
+
+#### 灵活 Git Push (`tools/scripts/git-push-flexible.sh`)
+
+增强的 git push 脚本，具有网络质量评估和自动重试功能：
+- 推送前测试网络连接
+- 最多重试 3 次，指数退避
+- 尝试代理和直连两种方式
+- HTTPS 失败时建议 SSH 备选方案
+
+**使用方法**：
+```bash
+npm run push
+# 或
+bash tools/scripts/git-push-flexible.sh
+```
+
+详细信息请参考 `CLAUDE.md` 中关于 git push 脚本的说明。
+
+---
+
 感谢你对项目的关注和贡献！

@@ -4,6 +4,23 @@
   "type": "module",
   "private": true,
   "description": "雀魂金玉四麻对手风格实时分析助手",
+  "author": "Cooper-X-Oak",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cooper-X-Oak/majstyle.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Cooper-X-Oak/majstyle.js/issues"
+  },
+  "homepage": "https://github.com/Cooper-X-Oak/majstyle.js#readme",
+  "keywords": [
+    "mahjong",
+    "majsoul",
+    "userscript",
+    "tampermonkey",
+    "game-analysis"
+  ],
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
