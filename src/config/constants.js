@@ -16,6 +16,16 @@ export var LEVEL_BASELINE = {
 // 默认基准（杰3）
 export var DEFAULT_BASELINE = LEVEL_BASELINE[10403];
 
+// API 配置
+export var API_CONFIG = {
+    baseUrl: 'https://5-data.amae-koromo.com/api/v2/pl4',
+    startTime: 1262304000000,
+    params: {
+        mode: '12.9',
+        tag: '492541'
+    }
+};
+
 // 分类阈值
 export var THRESHOLDS = {
     进攻意愿: { 高: 1.5, 低: -1.5 },

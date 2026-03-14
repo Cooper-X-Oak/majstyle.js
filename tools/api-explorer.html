@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>牌谱屋 API 探索工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 { color: #4ec9b0; }
+        h2 { color: #569cd6; margin-top: 30px; }
+        .input-section {
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #9cdcfe;
+        }
+        input {
+            width: 300px;
+            padding: 8px;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            color: #d4d4d4;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover { background: #1177bb; }
+        pre {
+            background: #1e1e1e;
+            border: 1px solid #555;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.loading { background: #264f78; color: #9cdcfe; }
+        .status.success { background: #1e3a1e; color: #4ec9b0; }
+        .status.error { background: #3a1e1e; color: #f48771; }
+        .field-analysis {
+            background: #252526;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .field-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        .field-name { color: #9cdcfe; font-weight: bold; }
+        .field-type { color: #4ec9b0; }
+        .field-value { color: #ce9178; }
+    </style>
+</head>
+<body>
+    <h1>🔍 牌谱屋 API 探索工具</h1>
+
+    <div class="input-section">
+        <label>
+            雀魂账号 ID:
+            <input type="text" id="accountId" placeholder="例如: 14766635">
+        </label>
+        <button onclick="exploreAPI()">🚀 开始探索</button>
+        <button onclick="clearResults()">🗑️ 清空结果</button>
+    </div>
+
+    <div id="status"></div>
+
+    <h2>📊 player_stats API</h2>
+    <div id="stats-status"></div>
+    <pre id="stats-output"></pre>
+    <div id="stats-analysis"></div>
+
+    <h2>📈 player_extended_stats API</h2>
+    <div id="extended-status"></div>
+    <pre id="extended-output"></pre>
+    <div id="extended-analysis"></div>
+
+    <script>
+        function setStatus(elementId, message, type) {
+            var el = document.getElementById(elementId);
+            el.className = 'status ' + type;
+            el.textContent = message;
+        }
+
+        function analyzeFields(data, outputId) {
+            var html = '<div class="field-analysis"><h3>字段分析</h3>';
+            var fields = [];
+
+            function extractFields(obj, prefix) {
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        var fullKey = prefix ? prefix + '.' + key : key;
+                        var value = obj[key];
+                        var type = typeof value;
+
+                        if (value === null) {
+                            type = 'null';
+                        } else if (Array.isArray(value)) {
+                            type = 'array[' + value.length + ']';
+                        } else if (type === 'object') {
+                            type = 'object';
+                            extractFields(value, fullKey);
+                            continue;
+                        }
+
+                        fields.push({
+                            name: fullKey,
+                            type: type,
+                            value: JSON.stringify(value).substring(0, 100)
+                        });
+                    }
+                }
+            }
+
+            extractFields(data, '');
+
+            html += '<p>共 ' + fields.length + ' 个字段</p>';
+            fields.forEach(function(field) {
+                html += '<div class="field-item">';
+                html += '<span class="field-name">' + field.name + '</span>: ';
+                html += '<span class="field-type">' + field.type + '</span> = ';
+                html += '<span class="field-value">' + field.value + '</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+
+            document.getElementById(outputId).innerHTML = html;
+        }
+
+        function exploreAPI() {
+            var accountId = document.getElementById('accountId').value.trim();
+            if (!accountId) {
+                alert('请输入账号ID');
+                return;
+            }
+
+            setStatus('status', '正在探索 API...', 'loading');
+
+            var baseUrl = 'https://5-data.amae-koromo.com/api/v2/pl4';
+            var startTime = 1262304000000; // 2010-01-01
+            var endTime = Date.now();
+            var params = 'mode=12.9&tag=492541';
+
+            // 探索 player_stats
+            setStatus('stats-status', '正在请求 player_stats...', 'loading');
+            fetch(baseUrl + '/player_stats/' + accountId + '/' + startTime + '/' + endTime + '?' + params)
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function(data) {
+                    document.getElementById('stats-output').textContent = JSON.stringify(data, null, 2);
+                    setStatus('stats-status', '✓ 成功获取 player_stats 数据', 'success');
+                    analyzeFields(data, 'stats-analysis');
+                    console.log('player_stats:', data);
+                })
+                .catch(function(e) {
+                    document.getElementById('stats-output').textContent = 'Error: ' + e.message;
+                    setStatus('stats-status', '✗ 请求失败: ' + e.message, 'error');
+                });
+
+            // 探索 player_extended_stats
+            setStatus('extended-status', '正在请求 player_extended_stats...', 'loading');
+            fetch(baseUrl + '/player_extended_stats/' + accountId + '/' + startTime + '/' + endTime + '?' + params)
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function(data) {
+                    document.getElementById('extended-output').textContent = JSON.stringify(data, null, 2);
+                    setStatus('extended-status', '✓ 成功获取 player_extended_stats 数据', 'success');
+                    analyzeFields(data, 'extended-analysis');
+
+                    setStatus('status', '✓ 探索完成！请查看下方结果', 'success');
+
+                    console.log('player_extended_stats:', data);
+                    console.log('=== 可用字段清单 ===');
+                    for (var key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            console.log(key + ':', typeof data[key], data[key]);
+                        }
+                    }
+                })
+                .catch(function(e) {
+                    document.getElementById('extended-output').textContent = 'Error: ' + e.message;
+                    setStatus('extended-status', '✗ 请求失败: ' + e.message, 'error');
+                    setStatus('status', '✗ 探索失败，请检查账号ID是否正确', 'error');
+                });
+        }
+
+        function clearResults() {
+            document.getElementById('stats-output').textContent = '';
+            document.getElementById('extended-output').textContent = '';
+            document.getElementById('stats-analysis').innerHTML = '';
+            document.getElementById('extended-analysis').innerHTML = '';
+            document.getElementById('status').textContent = '';
+            document.getElementById('stats-status').textContent = '';
+            document.getElementById('extended-status').textContent = '';
+        }
+    </script>
+</body>
+</html>

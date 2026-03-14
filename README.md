@@ -20,7 +20,7 @@
 
 ### 快速安装（推荐）
 
-**一键安装链接**：[点击安装脚本](https://github.com/Cooper-X-Oak/majstyle.js/raw/main/雀魂金玉四麻风格分析助手-v2.0.0.user.js)
+**一键安装链接**：[点击安装脚本](https://github.com/Cooper-X-Oak/majstyle.js/raw/main/dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js)
 
 > 前提：需要先安装 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展
 
@@ -35,9 +35,15 @@
 
 #### 2. 安装脚本
 
+**方法 1：拖拽安装**
+1. 找到文件：`dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js`
+2. 直接拖拽到浏览器窗口
+3. Tampermonkey 会自动弹出安装页面，点击"安装"
+
+**方法 2：复制粘贴**
 1. 点击 Tampermonkey 图标 → 管理面板
 2. 点击"+"号创建新脚本
-3. 复制 `雀魂金玉四麻风格分析助手-v2.0.0.user.js` 的全部内容
+3. 复制 `dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js` 的全部内容
 4. 粘贴到编辑器，保存（Ctrl+S）
 
 ### 使用
@@ -45,6 +51,10 @@
 1. 打开雀魂游戏（https://game.maj-soul.com 或 https://game.maj-soul.net）
 2. 进入金之间或玉之间的四麻对局
 3. 等待2-3秒，自动显示分析结果
+
+### 🔍 数据探索功能（新增）
+
+按 `Ctrl+Alt+E` 可以触发数据探索模式，查看完整的 API 数据和游戏对象结构。详见 [docs/使用指南.md](docs/使用指南.md)
 
 详细安装指南请参考 [docs/installation.md](docs/installation.md)
 

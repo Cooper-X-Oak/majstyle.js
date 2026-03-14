@@ -1,4 +1,5 @@
 import { getColor } from './color-utils.js';
+import { escapeHtml } from '../utils/html-escape.js';
 
 // 创建无数据提示UI
 export function createNoDataUI(index, nickname, isSelf) {
@@ -21,14 +22,17 @@ export function createNoDataUI(index, nickname, isSelf) {
             'top: 20px; left: 75%; transform: translateX(-50%);',
             'top: 120px; left: 20px;'
         ];
-        if (typeof window.playerUICounter === 'undefined') {
-            window.playerUICounter = 0;
+        if (typeof window.majstyleJS === 'undefined') {
+            window.majstyleJS = {};
         }
-        container.style.cssText += otherPositions[window.playerUICounter % 3];
-        window.playerUICounter++;
+        if (typeof window.majstyleJS.playerUICounter === 'undefined') {
+            window.majstyleJS.playerUICounter = 0;
+        }
+        container.style.cssText += otherPositions[window.majstyleJS.playerUICounter % 3];
+        window.majstyleJS.playerUICounter++;
     }
 
-    var html = '<div style="color: #aaa; font-size: 10px;">' + nickname + (isSelf ? ' [你]' : '') + '</div>';
+    var html = '<div style="color: #aaa; font-size: 10px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</div>';
     html += '<div style="color: #666; font-size: 9px; margin-top: 2px;">无牌谱数据</div>';
 
     container.innerHTML = html;
@@ -61,17 +65,20 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
             'top: 120px; left: 20px;'       // 左上角
         ];
         // 使用一个全局计数器来分配位置
-        if (typeof window.playerUICounter === 'undefined') {
-            window.playerUICounter = 0;
+        if (typeof window.majstyleJS === 'undefined') {
+            window.majstyleJS = {};
         }
-        container.style.cssText += otherPositions[window.playerUICounter % 3];
-        window.playerUICounter++;
+        if (typeof window.majstyleJS.playerUICounter === 'undefined') {
+            window.majstyleJS.playerUICounter = 0;
+        }
+        container.style.cssText += otherPositions[window.majstyleJS.playerUICounter % 3];
+        window.majstyleJS.playerUICounter++;
     }
 
-    var 标签文本 = 标签.length > 0 ? '<br><span style="color: #ffa500; font-size: 9px;">' + 标签.slice(0, 3).join(' | ') + '</span>' : '';
-    var 玩家名 = '<span style="color: #aaa; font-size: 9px; margin-left: 5px;">' + nickname + (isSelf ? ' [你]' : '') + '</span>';
+    var 标签文本 = 标签.length > 0 ? '<br><span style="color: #ffa500; font-size: 9px;">' + 标签.slice(0, 3).map(escapeHtml).join(' | ') + '</span>' : '';
+    var 玩家名 = '<span style="color: #aaa; font-size: 9px; margin-left: 5px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
 
-    var html = '<div style="font-weight: bold; font-size: 13px; color: #ffd700; margin-bottom: 4px;">【' + 主称号 + '】' + 玩家名 + 标签文本 + '</div>';
+    var html = '<div style="font-weight: bold; font-size: 13px; color: #ffd700; margin-bottom: 4px;">【' + escapeHtml(主称号) + '】' + 玩家名 + 标签文本 + '</div>';
     html += '<div style="line-height: 1.5; font-size: 10px;">';
 
     var 立直偏差 = (数据.立直率 - baseline.立直率).toFixed(1);
