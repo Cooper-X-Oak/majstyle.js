@@ -80,7 +80,7 @@ try_push() {
     local method=$1
     echo -e "\n${YELLOW}Attempting push with $method...${NC}"
 
-    if git push "$@" 2>&1; then
+    if git push 2>&1; then
         echo -e "${GREEN}✓ Push successful!${NC}"
         return 0
     else
