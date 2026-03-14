@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## [2.1.0] - 2026-03-14
+
+### 重大重构：模块化架构
+
+**架构变更**：将单文件脚本重构为模块化结构，使用 Rollup 构建工具打包
+
+#### 新增
+
+- 建立模块化目录结构（src/config, src/api, src/analysis, src/ui, src/game）
+- 添加构建工具链（Rollup + Babel）
+- 支持 ES6+ 语法开发，自动转译为 ES5
+- 添加 watch 模式支持开发调试
+
+#### 变更
+
+- 代码拆分为 14 个模块文件，职责清晰
+- 配置模块：constants.js, metadata.js
+- API模块：client.js, amae-koromo.js
+- 分析模块：style-analyzer.js, advice-generator.js
+- UI模块：color-utils.js, player-info-card.js, ui-manager.js
+- 游戏桥接模块：game-bridge.js, player-processor.js
+- 主入口：main.js
+
+#### 技术栈
+
+- Rollup 4.12.0：模块打包
+- Babel 7.24.0：ES5 转译
+- 构建输出：dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js
+
+#### 开发体验
+
+- `npm run build`：生产构建
+- `npm run watch`：开发模式（自动重新构建）
+- `npm run dev`：开发模式别名
+
+---
+
 ## [2.0.0] - 2026-03-14
 
 ### 版本管理体系建立

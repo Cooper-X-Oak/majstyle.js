@@ -1,0 +1,19 @@
+{
+  "name": "majstyle-userscript",
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "description": "雀魂金玉四麻对手风格实时分析助手",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "dev": "npm run watch"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup": "^4.12.0"
+  }
+}

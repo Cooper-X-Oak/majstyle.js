@@ -5,11 +5,10 @@
 ## 项目概述
 
 - **项目名称**：雀魂金玉四麻风格分析助手
-- **版本**：v2.0.0
+- **版本**：v2.1.0
 - **开发工具**：Claude Code
-- **开发时长**：约 1 小时从 demo 到完整版
-- **代码量**：468 行纯 JavaScript
-- **技术栈**：纯 JavaScript（ES5 兼容）、Tampermonkey GM API、无外部依赖
+- **架构**：模块化（14个源文件）+ Rollup 构建
+- **技术栈**：ES6+ JavaScript（源码）→ ES5（输出）、Tampermonkey GM API
 
 ## 项目结构
 
@@ -17,23 +16,118 @@
 majstyle.js/
 ├── README.md                                    # 项目主文档
 ├── CHANGELOG.md                                 # 版本历史
-├── LICENSE                                      # 开源协议
-├── 雀魂金玉四麻风格分析助手-v2.0.0.user.js      # 主版本脚本
+├── LICENSE                                      # MIT 协议
+├── package.json                                 # 依赖和构建脚本
+├── rollup.config.js                             # Rollup 配置
+├── babel.config.js                              # Babel ES5 转译配置
+├── src/                                         # 源代码（模块化）
+│   ├── config/
+│   │   ├── constants.js                         # 常量、基准数据、阈值
+│   │   └── metadata.js                          # Userscript 元数据
+│   ├── api/
+│   │   ├── client.js                            # GM_xmlhttpRequest 封装
+│   │   └── amae-koromo.js                       # 牌谱屋 API
+│   ├── analysis/
+│   │   ├── style-analyzer.js                    # 风格分析算法
+│   │   └── advice-generator.js                  # 策略建议
+│   ├── ui/
+│   │   ├── color-utils.js                       # 颜色工具
+│   │   ├── player-info-card.js                  # 信息卡片组件
+│   │   └── ui-manager.js                        # UI 管理
+│   ├── game/
+│   │   ├── game-bridge.js                       # 游戏对象访问
+│   │   └── player-processor.js                  # 玩家处理流程
+│   └── main.js                                  # 主入口
+├── dist/                                        # 构建输出
+│   └── 雀魂金玉四麻风格分析助手-v2.0.0.user.js  # 打包后的脚本
 ├── docs/                                        # 文档目录
 │   ├── installation.md                          # 安装指南
 │   ├── usage.md                                 # 使用说明
 │   └── development.md                           # 开发指南（本文件）
 ├── archive/                                     # 历史版本归档
-│   ├── v1.x/                                    # MVP 系列
-│   │   ├── 雀魂数据分析面板MVP-v1.0.0.user.js
-│   │   └── 雀魂数据分析面板MVP-v2.0.0.user.js
-│   └── pro-series/                              # Pro 系列
-│       ├── 雀魂数据分析面板Pro-v3.0.0.user.js
-│       └── 雀魂数据分析面板Pro-v4.0.0.user.js
-├── dev/                                         # 开发测试目录
-│   ├── test-scripts/                            # 测试脚本
-│   └── PROJECT_SUMMARY.md                       # 项目总结
 └── openspec/                                    # 规范管理
+```
+
+## 开发环境搭建
+
+### 1. 安装依赖
+
+```bash
+npm install
+```
+
+### 2. 开发模式
+
+```bash
+# 启动 watch 模式（自动重新构建）
+npm run watch
+
+# 或使用别名
+npm run dev
+```
+
+### 3. 生产构建
+
+```bash
+npm run build
+```
+
+构建输出：`dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js`
+
+## 模块化架构
+
+### 模块划分
+
+项目采用职责分离的模块化架构：
+
+#### 1. 配置模块 (src/config/)
+
+- **constants.js**：段位基准数据、分类阈值、getBaseline 函数
+- **metadata.js**：Userscript 元数据配置
+
+#### 2. API模块 (src/api/)
+
+- **client.js**：封装 GM_xmlhttpRequest 为 Promise 接口
+- **amae-koromo.js**：牌谱屋 API 调用（getPlayerStats, getPlayerExtendedStats）
+
+#### 3. 分析模块 (src/analysis/)
+
+- **style-analyzer.js**：核心风格分析算法（analyzeStyle）
+- **advice-generator.js**：策略建议生成（generateAdvice）
+
+#### 4. UI模块 (src/ui/)
+
+- **color-utils.js**：偏差值颜色计算（getColor）
+- **player-info-card.js**：玩家信息卡片渲染（createPlayerInfoUI, createNoDataUI）
+- **ui-manager.js**：UI 管理（clearAllPlayerInfoUI, resetPlayerUICounter）
+
+#### 5. 游戏桥接模块 (src/game/)
+
+- **game-bridge.js**：游戏对象访问（getGameWindow, getPlayerDatas, getMyAccountId）
+- **player-processor.js**：玩家处理流程（processPlayer, printAnalysis）
+
+#### 6. 主入口 (src/main.js)
+
+- IIFE 包装
+- 主事件循环（2秒延迟启动，1秒轮询间隔）
+- 玩家变化检测
+- 并行处理4个玩家
+
+### 模块依赖关系
+
+```
+main.js
+  ├─ game/game-bridge.js
+  ├─ game/player-processor.js
+  │   ├─ api/amae-koromo.js
+  │   │   └─ api/client.js
+  │   ├─ config/constants.js
+  │   ├─ analysis/style-analyzer.js
+  │   │   └─ config/constants.js
+  │   ├─ analysis/advice-generator.js
+  │   └─ ui/player-info-card.js
+  │       └─ ui/color-utils.js
+  └─ ui/ui-manager.js
 ```
 
 ## 技术架构
@@ -45,23 +139,25 @@ majstyle.js/
 使用 Tampermonkey 的 `GM_xmlhttpRequest` API 绕过浏览器的 CORS 限制：
 
 ```javascript
-GM_xmlhttpRequest({
-    method: 'GET',
-    url: 'https://5-data.amae-koromo.com/api/v2/pl4/player_stats/...',
-    timeout: 10000,
-    onload: function(response) {
-        if (response.status === 200) {
-            var data = JSON.parse(response.responseText);
-            // 处理数据
-        }
-    },
-    onerror: function() {
-        // 处理错误
-    },
-    ontimeout: function() {
-        // 处理超时
-    }
-});
+// src/api/client.js
+export function gmRequest(options) {
+    return new Promise(function(resolve, reject) {
+        GM_xmlhttpRequest({
+            method: options.method || 'GET',
+            url: options.url,
+            timeout: options.timeout || 10000,
+            onload: function(response) {
+                if (response.status === 200) {
+                    resolve(JSON.parse(response.responseText));
+                } else {
+                    reject('HTTP ' + response.status);
+                }
+            },
+            onerror: function() { reject('网络错误'); },
+            ontimeout: function() { reject('请求超时'); }
+        });
+    });
+}
 ```
 
 #### 2. 游戏对象访问（unsafeWindow）
@@ -69,11 +165,19 @@ GM_xmlhttpRequest({
 通过 `unsafeWindow` 访问页面的真实 window 对象：
 
 ```javascript
-// @grant unsafeWindow
+// src/game/game-bridge.js
+export function getGameWindow() {
+    return (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
+}
 
-var gameWindow = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
-var playerDatas = gameWindow.view.DesktopMgr.Inst.player_datas;
-var myId = gameWindow.GameMgr.Inst.account_id;
+export function getPlayerDatas() {
+    var gameWindow = getGameWindow();
+    try {
+        return gameWindow.view.DesktopMgr.Inst.player_datas;
+    } catch(e) {
+        return null;
+    }
+}
 ```
 
 **关键点**：
@@ -84,7 +188,8 @@ var myId = gameWindow.GameMgr.Inst.account_id;
 #### 3. 风格分析算法
 
 ```javascript
-function analyzeStyle(stats, baseline) {
+// src/analysis/style-analyzer.js
+export function analyzeStyle(stats, baseline) {
     // 1. 计算进攻意愿
     var 进攻意愿 = 立直率 + 副露率;
     var 基准进攻意愿 = baseline.立直率 + baseline.副露率;

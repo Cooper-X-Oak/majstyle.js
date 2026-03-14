@@ -87,8 +87,28 @@
 
 - **开发工具**：Claude Code
 - **开发时长**：约 1 小时从 demo 到完整版
-- **代码量**：468 行纯 JavaScript
-- **技术栈**：纯 JavaScript（ES5 兼容）、Tampermonkey GM API、无外部依赖
+- **代码量**：468 行纯 JavaScript（模块化后拆分为 14 个文件）
+- **技术栈**：
+  - 源代码：ES6+ JavaScript（模块化）
+  - 构建工具：Rollup + Babel
+  - 输出：ES5 兼容的单文件 userscript
+  - 无外部依赖（运行时）
+
+### 开发环境
+
+```bash
+# 安装依赖
+npm install
+
+# 开发模式（自动重新构建）
+npm run watch
+
+# 生产构建
+npm run build
+
+# 输出文件
+dist/雀魂金玉四麻风格分析助手-v2.0.0.user.js
+```
 
 详细开发指南请参考 [docs/development.md](docs/development.md)
 
