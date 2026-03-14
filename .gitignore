@@ -3,3 +3,7 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+
+# 开发和测试文件（不提交到开源仓库）
+testversion/
+dev/
