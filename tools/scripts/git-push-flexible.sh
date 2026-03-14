@@ -2,8 +2,6 @@
 # Git Push with Flexible Network Handling
 # 灵活处理网络问题的 Git 推送脚本
 
-set -e
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -55,37 +53,23 @@ test_connectivity() {
     local test_url="https://github.com"
 
     if [ "$use_proxy" = "true" ]; then
-        echo -e "${YELLOW}Testing connectivity with proxy...${NC}"
-        if curl -I --connect-timeout 5 --proxy "$DEFAULT_PROXY" "$test_url" &>/dev/null; then
-            echo -e "${GREEN}✓ Proxy connection works${NC}"
+        echo -e "${YELLOW}Testing proxy connection...${NC}"
+        if timeout 5 curl -I --connect-timeout 5 --proxy "$DEFAULT_PROXY" "$test_url" &>/dev/null; then
+            echo -e "${GREEN}✓ Proxy works${NC}"
             return 0
         else
-            echo -e "${RED}✗ Proxy connection failed${NC}"
+            echo -e "${RED}✗ Proxy failed${NC}"
             return 1
         fi
     else
-        echo -e "${YELLOW}Testing direct connectivity...${NC}"
-        if curl -I --connect-timeout 5 "$test_url" &>/dev/null; then
+        echo -e "${YELLOW}Testing direct connection...${NC}"
+        if timeout 5 curl -I --connect-timeout 5 "$test_url" &>/dev/null; then
             echo -e "${GREEN}✓ Direct connection works${NC}"
             return 0
         else
             echo -e "${RED}✗ Direct connection failed${NC}"
             return 1
         fi
-    fi
-}
-
-# Function to attempt git push
-try_push() {
-    local method=$1
-    echo -e "\n${YELLOW}Attempting push with $method...${NC}"
-
-    if git push 2>&1; then
-        echo -e "${GREEN}✓ Push successful!${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ Push failed${NC}"
-        return 1
     fi
 }
 
@@ -101,32 +85,50 @@ main() {
         exit 0
     fi
 
-    # Strategy 1: Try with current settings
-    echo -e "${YELLOW}Strategy 1: Using current settings${NC}"
-    if try_push "current settings"; then
-        exit 0
+    # Test which connection method works
+    echo -e "${YELLOW}Step 1: Testing network connectivity${NC}\n"
+
+    PROXY_WORKS=false
+    DIRECT_WORKS=false
+
+    if test_connectivity "true"; then
+        PROXY_WORKS=true
     fi
 
-    # Strategy 2: Try with proxy
-    echo -e "\n${YELLOW}Strategy 2: Using proxy${NC}"
-    set_proxy "$DEFAULT_PROXY"
-    if try_push "proxy"; then
-        exit 0
+    if test_connectivity "false"; then
+        DIRECT_WORKS=true
     fi
 
-    # Strategy 3: Try without proxy (direct connection)
-    echo -e "\n${YELLOW}Strategy 3: Using direct connection${NC}"
-    unset_proxy
-    if try_push "direct connection"; then
-        # Restore original proxy settings
-        restore_proxy "$ORIGINAL_PROXY"
-        exit 0
+    echo ""
+
+    # Decide which method to use
+    if [ "$PROXY_WORKS" = "true" ]; then
+        echo -e "${YELLOW}Step 2: Using proxy to push${NC}"
+        set_proxy "$DEFAULT_PROXY"
+        if git push; then
+            echo -e "\n${GREEN}✓ Push successful with proxy!${NC}"
+            exit 0
+        else
+            echo -e "\n${RED}✗ Push failed with proxy${NC}"
+        fi
     fi
 
-    # All strategies failed
-    echo -e "\n${RED}=== All push strategies failed ===${NC}"
-    echo -e "${YELLOW}Your commits are safe locally. Try again later when network is stable.${NC}"
-    echo -e "${YELLOW}You can manually push with: git push${NC}"
+    if [ "$DIRECT_WORKS" = "true" ]; then
+        echo -e "${YELLOW}Step 2: Using direct connection to push${NC}"
+        unset_proxy
+        if git push; then
+            echo -e "\n${GREEN}✓ Push successful with direct connection!${NC}"
+            restore_proxy "$ORIGINAL_PROXY"
+            exit 0
+        else
+            echo -e "\n${RED}✗ Push failed with direct connection${NC}"
+        fi
+    fi
+
+    # Both failed
+    echo -e "\n${RED}=== Push failed ===${NC}"
+    echo -e "${YELLOW}Network is unstable. Your commits are safe locally.${NC}"
+    echo -e "${YELLOW}Try again later with: npm run push${NC}"
 
     # Restore original proxy settings
     restore_proxy "$ORIGINAL_PROXY"
