@@ -137,6 +137,36 @@ src/
 2. Update positioning logic in `src/ui/ui-manager.js`
 3. Test with multiple players to ensure no overlap
 
+## Git Push with Network Issues
+
+When pushing to GitHub in environments with unstable network or proxy issues, use this flexible approach:
+
+```bash
+# Method 1: Try with current proxy settings first
+git push
+
+# Method 2: If proxy fails, temporarily disable and use direct connection
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+git push
+
+# Method 3: Restore proxy after successful push
+git config --global http.proxy http://127.0.0.1:7897
+git config --global https.proxy http://127.0.0.1:7897
+```
+
+**Strategy**:
+1. Always try with current settings first
+2. If connection fails, check if proxy is the issue (test with `curl`)
+3. Temporarily disable proxy if it's not working
+4. Push with direct connection
+5. Restore original proxy settings after success
+
+**Common Issues**:
+- Proxy timeout: Switch to direct connection
+- Direct connection blocked: Try proxy or wait for network stability
+- Both fail: Commits are safe locally, push later when network is stable
+
 ## Important Notes
 
 - The script uses a 1-second polling interval to detect player changes

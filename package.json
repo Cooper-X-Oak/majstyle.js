@@ -7,7 +7,8 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "dev": "npm run watch"
+    "dev": "npm run watch",
+    "push": "bash tools/scripts/git-push-flexible.sh"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
