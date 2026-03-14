@@ -139,7 +139,44 @@ src/
 
 ## Git Push with Network Issues
 
-When pushing to GitHub in environments with unstable network or proxy issues, use this flexible approach:
+When pushing to GitHub in environments with unstable network or proxy issues, use the enhanced `git-push-flexible.sh` script:
+
+```bash
+# Recommended: Use the automated script
+npm run push
+
+# Or run directly
+bash tools/scripts/git-push-flexible.sh
+```
+
+**Features**:
+
+1. **Network Quality Assessment**: Tests packet loss and latency to GitHub before attempting push
+2. **Automatic Retry**: Retries up to 3 times with exponential backoff (2s, 4s, 6s delays)
+3. **Timeout Optimization**: Temporarily sets reasonable Git timeout parameters (1KB/s for 30s)
+4. **Multiple Methods**: Tries both proxy and direct connection automatically
+5. **SSH Fallback Suggestion**: Recommends SSH if HTTPS fails and SSH keys are available
+
+**How It Works**:
+
+1. Checks if there are commits to push
+2. Tests network quality (ping GitHub for packet loss and latency)
+3. Warns if network is poor, asks for confirmation
+4. Optimizes Git timeout settings temporarily
+5. Tests both proxy and direct connectivity
+6. Attempts push with retry mechanism (3 attempts per method)
+7. Restores original Git settings
+8. Suggests SSH alternative if all HTTPS methods fail
+
+**Network Quality Levels**:
+
+- **Good**: 0% packet loss, <200ms latency → proceeds automatically
+- **Fair**: <30% packet loss → proceeds with warning
+- **Poor**: ≥30% packet loss → asks for confirmation before proceeding
+
+**Manual Fallback**:
+
+If the script fails, you can try these manual approaches:
 
 ```bash
 # Method 1: Try with current proxy settings first
@@ -147,6 +184,31 @@ git push
 
 # Method 2: If proxy fails, temporarily disable and use direct connection
 git config --global --unset http.proxy
+git config --global --unset https.proxy
+git push
+
+# Method 3: Restore proxy after successful push
+git config --global http.proxy http://127.0.0.1:7897
+git config --global https.proxy http://127.0.0.1:7897
+
+# Method 4: Switch to SSH (more stable than HTTPS)
+git remote set-url origin git@github.com:user/repo.git
+git push
+```
+
+**Troubleshooting**:
+
+- **Proxy timeout**: Script automatically tries direct connection
+- **Direct connection blocked**: Script tries proxy if available
+- **Both fail repeatedly**: Consider switching to SSH or waiting for better network
+- **SSH alternative**: If you have SSH keys configured, the script will suggest switching to SSH remote URL
+
+**Common Issues**:
+
+- Proxy timeout: Switch to direct connection
+- Direct connection blocked: Try proxy or wait for network stability
+- Both fail: Commits are safe locally, push later when network is stable
+- High packet loss: Wait for better network conditions or try from different network
 git config --global --unset https.proxy
 git push
 
