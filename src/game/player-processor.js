@@ -2,7 +2,7 @@ import { getPlayerStats, getPlayerExtendedStats } from '../api/amae-koromo.js';
 import { getBaseline } from '../config/constants.js';
 import { analyzeStyle } from '../analysis/style-analyzer.js';
 import { generateAdvice } from '../analysis/advice-generator.js';
-import { createPlayerInfoUI, createNoDataUI } from '../ui/player-info-card.js';
+import { createPlayerInfoUI, createNoDataUI } from '../ui/player-info-card-enhanced.js';
 
 // 控制台输出详细分析
 export function printAnalysis(playerData, analysis, baseline, index, isSelf, stats) {
@@ -12,7 +12,8 @@ export function printAnalysis(playerData, analysis, baseline, index, isSelf, sta
     var 偏差 = analysis.偏差;
     var advice = generateAdvice(analysis, stats);
 
-    createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, playerData.nickname, isSelf, advice.原型);
+    // 传递完整的 advice 对象到 UI
+    createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, playerData.nickname, isSelf, advice.原型, advice);
 
     var 标签文本 = 标签.length > 0 ? ' [' + 标签.join(', ') + ']' : '';
     console.log('  段位: ' + baseline.name + ' | 称号: ' + 主称号 + 标签文本);
@@ -56,7 +57,15 @@ export function printAnalysis(playerData, analysis, baseline, index, isSelf, sta
     console.log('  ');
     console.log('    策略建议:');
     advice.策略建议.forEach(function(tip, index) {
-        console.log('      ' + (index + 1) + '. ' + tip);
+        if (typeof tip === 'string') {
+            console.log('      ' + (index + 1) + '. ' + tip);
+        } else {
+            console.log('      ' + (index + 1) + '. [' + tip.来源 + '] ' + tip.建议);
+            console.log('         置信度: ' + tip.置信度 + ' | 优先级: ' + tip.优先级);
+            if (tip.理由 && tip.理由.触发条件) {
+                console.log('         触发条件: ' + tip.理由.触发条件);
+            }
+        }
     });
 }
 

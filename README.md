@@ -114,3 +114,14 @@ MIT License
 - **Claude Code (Opus 4.6)** - 全程 AI 辅助开发
 - **牌谱屋（Amae Koromo）** - 提供公开 API 和数据
 - **雀魂社区** - 提供游戏对象结构参考
+
+## 联系作者
+
+如有问题、建议或合作意向，欢迎通过微信联系：
+
+<div align="center">
+  <img src="docs/images/cooper-wechat-code.jpg" alt="Cooper 微信二维码" width="300">
+  <p><strong>Cooper</strong></p>
+  <p>中国大陆</p>
+  <p>扫一扫上面的二维码图案，加我为朋友。</p>
+</div>
