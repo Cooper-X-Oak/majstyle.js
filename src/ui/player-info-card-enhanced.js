@@ -49,20 +49,20 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
     var container = document.createElement('div');
     container.id = 'player-style-' + index;
     container.className = 'majsoul-style-info';
-    container.style.cssText = 'position: fixed; background: rgba(0,0,0,0.85); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 11px; z-index: 10000; box-shadow: 0 0 15px rgba(0,0,0,0.7); pointer-events: auto; width: 320px; max-height: 80vh; overflow-y: auto;';
+    container.style.cssText = 'position: fixed; background: rgba(0,0,0,0.75); color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 10px; z-index: 10000; box-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: auto; width: auto; max-width: 200px; cursor: pointer; transition: all 0.2s ease;';
 
     // 根据是否是自己来决定位置
     var positions;
     if (isSelf) {
         // 自己固定在左下角
-        positions = ['bottom: 120px; left: 20px;'];
+        positions = ['bottom: 140px; left: 10px;'];
         container.style.cssText += positions[0];
     } else {
         // 其他玩家按顺序分配到其他三个位置
         var otherPositions = [
-            'top: 120px; right: 20px;',     // 右上角
-            'top: 20px; left: 75%; transform: translateX(-50%);',  // 顶部右侧3/4位置
-            'top: 120px; left: 20px;'       // 左上角
+            'top: 140px; right: 10px;',     // 右上角
+            'top: 10px; right: 10px;',      // 右上角（更靠上）
+            'top: 140px; left: 10px;'       // 左上角
         ];
         // 使用一个全局计数器来分配位置
         if (typeof window.majstyleJS === 'undefined') {
@@ -81,22 +81,57 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
         titleText = archetype.icon + ' ' + archetype.name;
     }
 
-    var 标签文本 = 标签.length > 0 ? '<br><span style="color: #ffa500; font-size: 9px;">' + 标签.slice(0, 3).map(escapeHtml).join(' | ') + '</span>' : '';
-    var 玩家名 = '<span style="color: #aaa; font-size: 9px; margin-left: 5px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
+    var 玩家名 = '<span style="color: #aaa; font-size: 9px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
 
-    var html = '<div style="font-weight: bold; font-size: 13px; color: #ffd700; margin-bottom: 6px;">【' + escapeHtml(titleText) + '】' + 玩家名 + 标签文本 + '</div>';
+    // 精简版内容（默认显示）
+    var compactHtml = '<div style="font-weight: bold; font-size: 11px; color: #ffd700; margin-bottom: 4px;">【' + escapeHtml(titleText) + '】' + 玩家名 + '</div>';
 
-    // 危险度评分（如果有）
+    // 强度评估（精简版）
+    if (advice && advice.进攻强度 && advice.防守强度) {
+        compactHtml += '<div style="font-size: 9px; line-height: 1.4;">';
+        compactHtml += '⚔️ <span style="color: ' + advice.进攻强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.进攻强度.标签) + '</span> ';
+        compactHtml += '🛡️ <span style="color: ' + advice.防守强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.防守强度.标签) + '</span>';
+        compactHtml += '</div>';
+    }
+
+    // 危险度（精简版）
     if (advice && advice.危险度) {
         var dangerLevel = advice.危险度;
-        html += '<div style="background: rgba(255,0,0,0.15); padding: 6px 8px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid ' + getDangerColor(dangerLevel.分数) + ';">';
-        html += '<div style="font-size: 11px; font-weight: bold; color: ' + getDangerColor(dangerLevel.分数) + ';">' + dangerLevel.图标 + ' 危险度: ' + dangerLevel.分数 + '/10 - ' + escapeHtml(dangerLevel.标签) + '</div>';
-        html += '<div style="font-size: 9px; color: #bbb; margin-top: 2px;">置信度: ' + escapeHtml(dangerLevel.置信度) + '</div>';
-        html += '</div>';
+        compactHtml += '<div style="font-size: 9px; color: ' + getDangerColor(dangerLevel.分数) + '; margin-top: 2px;">';
+        compactHtml += dangerLevel.图标 + ' ' + dangerLevel.分数 + '/10';
+        compactHtml += '</div>';
+    }
+
+    compactHtml += '<div style="font-size: 8px; color: #666; margin-top: 4px; text-align: center;">▼ 点击展开</div>';
+
+    // 详细版内容（点击后显示）
+    var detailHtml = '<div style="font-weight: bold; font-size: 11px; color: #ffd700; margin-bottom: 4px;">【' + escapeHtml(titleText) + '】' + 玩家名 + '</div>';
+
+    // 强度评估（详细版）
+    if (advice && advice.进攻强度 && advice.防守强度) {
+        detailHtml += '<div style="margin-bottom: 4px; font-size: 9px; line-height: 1.4;">';
+        detailHtml += '⚔️ <span style="color: ' + advice.进攻强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.进攻强度.标签) + '</span>';
+        if (advice.进攻强度.态度词) {
+            detailHtml += ' <span style="color: #999;">(' + escapeHtml(advice.进攻强度.态度词) + ')</span>';
+        }
+        detailHtml += '<br>';
+        detailHtml += '🛡️ <span style="color: ' + advice.防守强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.防守强度.标签) + '</span>';
+        if (advice.防守强度.态度词) {
+            detailHtml += ' <span style="color: #999;">(' + escapeHtml(advice.防守强度.态度词) + ')</span>';
+        }
+        detailHtml += '</div>';
+    }
+
+    // 危险度评分（详细版）
+    if (advice && advice.危险度) {
+        var dangerLevel = advice.危险度;
+        detailHtml += '<div style="font-size: 9px; color: ' + getDangerColor(dangerLevel.分数) + '; margin-bottom: 4px;">';
+        detailHtml += dangerLevel.图标 + ' 危险度: ' + dangerLevel.分数 + '/10 - ' + escapeHtml(dangerLevel.标签);
+        detailHtml += '</div>';
     }
 
     // 基础数据
-    html += '<div style="line-height: 1.6; font-size: 10px; margin-bottom: 8px;">';
+    detailHtml += '<div style="line-height: 1.4; font-size: 9px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; margin-top: 4px;">';
 
     var 立直偏差 = (数据.立直率 - baseline.立直率).toFixed(1);
     var 副露偏差 = (数据.副露率 - baseline.副露率).toFixed(1);
@@ -104,94 +139,61 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
     var 放铳偏差 = 偏差.放铳率.toFixed(1);
     var 打点偏差 = 偏差.打点.toFixed(0);
 
-    html += '<div>立直: <span style="color: ' + getColor(parseFloat(立直偏差), 2) + '">' + 数据.立直率.toFixed(1) + '% (' + (立直偏差 > 0 ? '+' : '') + 立直偏差 + '%)</span></div>';
-    html += '<div>副露: <span style="color: ' + getColor(parseFloat(副露偏差), 3) + '">' + 数据.副露率.toFixed(1) + '% (' + (副露偏差 > 0 ? '+' : '') + 副露偏差 + '%)</span></div>';
-    html += '<div>和牌: <span style="color: ' + getColor(parseFloat(和牌偏差), 1.5) + '">' + 数据.和牌率.toFixed(1) + '% (' + (和牌偏差 > 0 ? '+' : '') + 和牌偏差 + '%)</span></div>';
-    html += '<div>放铳: <span style="color: ' + getColor(parseFloat(放铳偏差), 1.5) + '">' + 数据.放铳率.toFixed(1) + '% (' + (放铳偏差 > 0 ? '+' : '') + 放铳偏差 + '%)</span></div>';
-    html += '<div>打点: <span style="color: ' + getColor(parseFloat(打点偏差), 300) + '">' + 数据.平均打点 + ' (' + (打点偏差 > 0 ? '+' : '') + 打点偏差 + ')</span></div>';
-    html += '</div>';
+    detailHtml += '<div>立直: <span style="color: ' + getColor(parseFloat(立直偏差), 2) + '">' + 数据.立直率.toFixed(1) + '% (' + (立直偏差 > 0 ? '+' : '') + 立直偏差 + '%)</span></div>';
+    detailHtml += '<div>副露: <span style="color: ' + getColor(parseFloat(副露偏差), 3) + '">' + 数据.副露率.toFixed(1) + '% (' + (副露偏差 > 0 ? '+' : '') + 副露偏差 + '%)</span></div>';
+    detailHtml += '<div>和牌: <span style="color: ' + getColor(parseFloat(和牌偏差), 1.5) + '">' + 数据.和牌率.toFixed(1) + '% (' + (和牌偏差 > 0 ? '+' : '') + 和牌偏差 + '%)</span></div>';
+    detailHtml += '<div>放铳: <span style="color: ' + getColor(parseFloat(放铳偏差), 1.5) + '">' + 数据.放铳率.toFixed(1) + '% (' + (放铳偏差 > 0 ? '+' : '') + 放铳偏差 + '%)</span></div>';
+    detailHtml += '<div>打点: <span style="color: ' + getColor(parseFloat(打点偏差), 300) + '">' + 数据.平均打点 + ' (' + (打点偏差 > 0 ? '+' : '') + 打点偏差 + ')</span></div>';
+    detailHtml += '</div>';
 
-    // 策略建议（增强版 - 包含解释）
+    // 策略建议（前3条）
     if (advice && advice.策略建议 && advice.策略建议.length > 0) {
-        html += '<div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; margin-top: 8px;">';
-        html += '<div style="font-weight: bold; font-size: 11px; color: #4fc3f7; margin-bottom: 6px;">策略建议:</div>';
+        detailHtml += '<div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; margin-top: 4px;">';
+        detailHtml += '<div style="font-weight: bold; font-size: 9px; color: #4fc3f7; margin-bottom: 4px;">策略建议:</div>';
 
-        for (var i = 0; i < Math.min(advice.策略建议.length, 5); i++) {
+        for (var i = 0; i < Math.min(advice.策略建议.length, 3); i++) {
             var strategy = advice.策略建议[i];
 
-            // 如果是旧格式（字符串），直接显示
             if (typeof strategy === 'string') {
-                html += '<div style="margin-bottom: 6px; padding: 6px 8px; background: rgba(79,195,247,0.1); border-radius: 6px; font-size: 10px;">';
-                html += '<div style="color: #fff;">• ' + escapeHtml(strategy) + '</div>';
-                html += '</div>';
-                continue;
+                detailHtml += '<div style="margin-bottom: 4px; font-size: 8px; color: #ddd;">• ' + escapeHtml(strategy) + '</div>';
+            } else {
+                var priorityColor = getPriorityColor(strategy.优先级);
+                detailHtml += '<div style="margin-bottom: 4px; font-size: 8px; color: #ddd; border-left: 2px solid ' + priorityColor + '; padding-left: 4px;">';
+                detailHtml += '• ' + escapeHtml(strategy.建议);
+                detailHtml += '</div>';
             }
-
-            // 新格式（结构化建议）
-            var priorityColor = getPriorityColor(strategy.优先级);
-            var priorityLabel = getPriorityLabel(strategy.优先级);
-
-            html += '<div style="margin-bottom: 8px; padding: 8px 10px; background: rgba(79,195,247,0.1); border-radius: 6px; border-left: 3px solid ' + priorityColor + ';">';
-
-            // 建议标题
-            html += '<div style="font-size: 10px; color: #fff; font-weight: bold; margin-bottom: 4px;">';
-            html += '<span style="color: ' + priorityColor + ';">[' + priorityLabel + ']</span> ' + escapeHtml(strategy.建议);
-            html += '</div>';
-
-            // 置信度和来源
-            html += '<div style="font-size: 8px; color: #999; margin-bottom: 4px;">';
-            html += '置信度: ' + escapeHtml(strategy.置信度) + ' | 来源: ' + escapeHtml(strategy.来源);
-            html += '</div>';
-
-            // 详细理由（可折叠）
-            if (strategy.理由) {
-                var detailId = 'detail-' + index + '-' + i;
-                html += '<div style="font-size: 9px; color: #bbb; margin-top: 4px; cursor: pointer;" onclick="toggleDetail(\'' + detailId + '\')">';
-                html += '▶ 点击查看详细分析';
-                html += '</div>';
-
-                html += '<div id="' + detailId + '" style="display: none; font-size: 8px; color: #aaa; margin-top: 6px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 4px; line-height: 1.5;">';
-
-                if (strategy.理由.触发条件) {
-                    html += '<div style="margin-bottom: 3px;"><span style="color: #4fc3f7;">触发条件:</span> ' + escapeHtml(strategy.理由.触发条件) + '</div>';
-                }
-                if (strategy.理由.数据支撑) {
-                    html += '<div style="margin-bottom: 3px;"><span style="color: #4fc3f7;">数据支撑:</span> ' + escapeHtml(strategy.理由.数据支撑) + '</div>';
-                }
-                if (strategy.理由.推理逻辑) {
-                    html += '<div style="margin-bottom: 3px;"><span style="color: #4fc3f7;">推理逻辑:</span> ' + escapeHtml(strategy.理由.推理逻辑) + '</div>';
-                }
-                if (strategy.理由.战术含义) {
-                    html += '<div><span style="color: #4fc3f7;">战术含义:</span> ' + escapeHtml(strategy.理由.战术含义) + '</div>';
-                }
-
-                html += '</div>';
-            }
-
-            html += '</div>';
         }
 
-        html += '</div>';
+        detailHtml += '</div>';
     }
+
+    detailHtml += '<div style="font-size: 8px; color: #666; margin-top: 4px; text-align: center;">▲ 点击收起</div>';
+
+    // 默认显示精简版
+    var html = '<div class="compact-view">' + compactHtml + '</div>';
+    html += '<div class="detail-view" style="display: none;">' + detailHtml + '</div>';
 
     container.innerHTML = html;
     document.body.appendChild(container);
 
-    // 添加折叠/展开功能
-    if (!window.toggleDetail) {
-        window.toggleDetail = function(id) {
-            var element = document.getElementById(id);
-            if (element) {
-                if (element.style.display === 'none') {
-                    element.style.display = 'block';
-                    element.previousElementSibling.innerHTML = '▼ 点击隐藏详细分析';
-                } else {
-                    element.style.display = 'none';
-                    element.previousElementSibling.innerHTML = '▶ 点击查看详细分析';
-                }
-            }
-        };
-    }
+    // 添加点击切换功能
+    container.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var compactView = container.querySelector('.compact-view');
+        var detailView = container.querySelector('.detail-view');
+
+        if (compactView.style.display === 'none') {
+            // 当前是详细视图，切换到精简视图
+            compactView.style.display = 'block';
+            detailView.style.display = 'none';
+            container.style.maxWidth = '200px';
+        } else {
+            // 当前是精简视图，切换到详细视图
+            compactView.style.display = 'none';
+            detailView.style.display = 'block';
+            container.style.maxWidth = '280px';
+        }
+    });
 }
 
 // 获取危险度颜色

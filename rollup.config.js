@@ -1,5 +1,6 @@
 import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
+import json from '@rollup/plugin-json';
 import { USERSCRIPT_METADATA } from './src/config/metadata.js';
 
 function generateMetadataHeader(meta) {
@@ -19,6 +20,8 @@ function generateMetadataHeader(meta) {
   });
   lines.push('// ==/UserScript==');
   lines.push('');
+  lines.push('/* eslint-disable */');
+  lines.push('');
   return lines.join('\n');
 }
 
@@ -28,12 +31,13 @@ var metadata = USERSCRIPT_METADATA;
 export default {
   input: 'src/main.js',
   output: {
-    file: `dist/雀魂金玉四麻风格分析助手-v${metadata.version}.user.js`,
+    file: `dist/${metadata.name}-v${metadata.version}.user.js`,
     format: 'iife',
     banner: generateMetadataHeader(metadata)
   },
   plugins: [
     resolve(),
+    json(),
     babel({
       babelHelpers: 'bundled',
       presets: [

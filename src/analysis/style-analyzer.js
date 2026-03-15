@@ -1,7 +1,12 @@
-import { THRESHOLDS } from '../config/constants.js';
+import { getStyleThresholds } from '../config/config-loader.js';
 
 // 风格分析核心函数
 export function analyzeStyle(stats, baseline) {
+    'use strict';
+
+    // 从配置加载阈值
+    var THRESHOLDS = getStyleThresholds();
+
     var 立直率 = stats['立直率'] * 100;
     var 副露率 = stats['副露率'] * 100;
     var 和牌率 = stats['和牌率'] * 100;

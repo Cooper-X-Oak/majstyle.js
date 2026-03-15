@@ -39,8 +39,10 @@ export function createNoDataUI(index, nickname, isSelf) {
     document.body.appendChild(container);
 }
 
-// 创建玩家风格信息UI
-export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, nickname, isSelf, archetype) {
+// 创建玩家风格信息UI（增强版 - 显示强度信息）
+export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, nickname, isSelf, archetype, attackStrength, defenseStrength) {
+    'use strict';
+
     var existingUI = document.getElementById('player-style-' + index);
     if (existingUI) {
         existingUI.remove();
@@ -85,6 +87,19 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
     var 玩家名 = '<span style="color: #aaa; font-size: 9px; margin-left: 5px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
 
     var html = '<div style="font-weight: bold; font-size: 13px; color: #ffd700; margin-bottom: 4px;">【' + escapeHtml(titleText) + '】' + 玩家名 + 标签文本 + '</div>';
+
+    // 显示强度信息
+    if (attackStrength && defenseStrength) {
+        html += '<div style="margin-bottom: 6px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">';
+        html += '<div style="font-size: 10px; margin-bottom: 2px;">';
+        html += '⚔️ 进攻 <span style="color: ' + attackStrength.颜色 + '; font-weight: bold;">' + attackStrength.标签 + '</span> <span style="color: #aaa;">(' + attackStrength.态度词 + ')</span>';
+        html += '</div>';
+        html += '<div style="font-size: 10px;">';
+        html += '🛡️ 防守 <span style="color: ' + defenseStrength.颜色 + '; font-weight: bold;">' + defenseStrength.标签 + '</span> <span style="color: #aaa;">(' + defenseStrength.态度词 + ')</span>';
+        html += '</div>';
+        html += '</div>';
+    }
+
     html += '<div style="line-height: 1.5; font-size: 10px;">';
 
     var 立直偏差 = (数据.立直率 - baseline.立直率).toFixed(1);

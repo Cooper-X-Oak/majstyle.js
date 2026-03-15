@@ -6,6 +6,8 @@ import { createPlayerInfoUI, createNoDataUI } from '../ui/player-info-card-enhan
 
 // 控制台输出详细分析
 export function printAnalysis(playerData, analysis, baseline, index, isSelf, stats) {
+    'use strict';
+
     var 主称号 = analysis.主称号;
     var 标签 = analysis.标签;
     var 数据 = analysis.数据;
@@ -13,11 +15,42 @@ export function printAnalysis(playerData, analysis, baseline, index, isSelf, sta
     var advice = generateAdvice(analysis, stats);
 
     // 传递完整的 advice 对象到 UI
-    createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, playerData.nickname, isSelf, advice.原型, advice);
+    createPlayerInfoUI(
+        index,
+        主称号,
+        标签,
+        数据,
+        偏差,
+        baseline,
+        playerData.nickname,
+        isSelf,
+        advice.原型,
+        advice
+    );
 
     var 标签文本 = 标签.length > 0 ? ' [' + 标签.join(', ') + ']' : '';
     console.log('  段位: ' + baseline.name + ' | 称号: ' + 主称号 + 标签文本);
     console.log('  ');
+
+    // 输出强度信息
+    if (advice.进攻强度 && advice.防守强度) {
+        console.log('  【强度评估】');
+        console.log('    ⚔️ 进攻强度: ' + advice.进攻强度.标签 + ' (' + advice.进攻强度.态度词 + ')');
+        console.log('       总分: ' + advice.进攻强度.总分.toFixed(1) + '/100');
+        console.log('       立直进攻: ' + advice.进攻强度.子维度.立直进攻.toFixed(1) + '/10');
+        console.log('       副露进攻: ' + advice.进攻强度.子维度.副露进攻.toFixed(1) + '/10');
+        console.log('       速度: ' + advice.进攻强度.子维度.速度.toFixed(1) + '/10');
+        console.log('       打点: ' + advice.进攻强度.子维度.打点.toFixed(1) + '/10');
+        console.log('  ');
+        console.log('    🛡️ 防守强度: ' + advice.防守强度.标签 + ' (' + advice.防守强度.态度词 + ')');
+        console.log('       总分: ' + advice.防守强度.总分.toFixed(1) + '/100');
+        console.log('       放铳控制: ' + advice.防守强度.子维度.放铳控制.toFixed(1) + '/10');
+        console.log('       大牌防守: ' + advice.防守强度.子维度.大牌防守.toFixed(1) + '/10');
+        console.log('       隐蔽性: ' + advice.防守强度.子维度.隐蔽性.toFixed(1) + '/10');
+        console.log('       立直防守: ' + advice.防守强度.子维度.立直防守.toFixed(1) + '/10');
+        console.log('  ');
+    }
+
     console.log('  【进攻】相对' + baseline.name + '平均');
     console.log('    立直率: ' + 数据.立直率.toFixed(1) + '% (' + (数据.立直率 - baseline.立直率).toFixed(1) + '%)');
     console.log('    副露率: ' + 数据.副露率.toFixed(1) + '% (' + (数据.副露率 - baseline.副露率).toFixed(1) + '%)');

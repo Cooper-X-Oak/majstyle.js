@@ -1,13 +1,18 @@
 import { detectArchetype, getArchetypeAdvice } from './archetype-detector.js';
-import { DANGER_WEIGHTS } from '../config/constants.js';
+import { getDangerWeights } from '../config/config-loader.js';
+import { evaluateAttackStrength, evaluateDefenseStrength } from './strength-evaluator.js';
 
 // 策略建议生成（增强版）
 export function generateAdvice(analysis, stats) {
+    'use strict';
+
     var archetype = detectArchetype(stats);
 
     return {
         危险度: calculateDangerLevel(analysis, stats),
         原型: archetype,
+        进攻强度: evaluateAttackStrength(stats),
+        防守强度: evaluateDefenseStrength(stats),
         综合实力: assessOverallStrength(stats),
         进攻特征: analyzeOffensePattern(stats),
         防守能力: analyzeDefense(stats),
@@ -147,6 +152,11 @@ function analyzeDefense(stats) {
 
 // 危险度计算（增强版 - 10维度）
 function calculateDangerLevel(analysis, stats) {
+    'use strict';
+
+    // 从配置加载权重
+    var DANGER_WEIGHTS = getDangerWeights();
+
     var scores = {};
     var totalWeight = 0;
     var weightedSum = 0;
