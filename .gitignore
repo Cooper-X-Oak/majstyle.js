@@ -47,3 +47,9 @@ testversion/
 dev/
 .claude/
 
+# Internal documentation (not for public GitHub)
+CLAUDE.md
+docs/development/
+docs/phase1-implementation-summary.md
+docs/phase1-testing-guide.md
+

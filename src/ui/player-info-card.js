@@ -40,7 +40,7 @@ export function createNoDataUI(index, nickname, isSelf) {
 }
 
 // 创建玩家风格信息UI
-export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, nickname, isSelf) {
+export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, nickname, isSelf, archetype) {
     var existingUI = document.getElementById('player-style-' + index);
     if (existingUI) {
         existingUI.remove();
@@ -75,10 +75,16 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
         window.majstyleJS.playerUICounter++;
     }
 
+    // 构建标题行（包含原型信息）
+    var titleText = 主称号;
+    if (archetype) {
+        titleText = archetype.icon + ' ' + archetype.name;
+    }
+
     var 标签文本 = 标签.length > 0 ? '<br><span style="color: #ffa500; font-size: 9px;">' + 标签.slice(0, 3).map(escapeHtml).join(' | ') + '</span>' : '';
     var 玩家名 = '<span style="color: #aaa; font-size: 9px; margin-left: 5px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
 
-    var html = '<div style="font-weight: bold; font-size: 13px; color: #ffd700; margin-bottom: 4px;">【' + escapeHtml(主称号) + '】' + 玩家名 + 标签文本 + '</div>';
+    var html = '<div style="font-weight: bold; font-size: 13px; color: #ffd700; margin-bottom: 4px;">【' + escapeHtml(titleText) + '】' + 玩家名 + 标签文本 + '</div>';
     html += '<div style="line-height: 1.5; font-size: 10px;">';
 
     var 立直偏差 = (数据.立直率 - baseline.立直率).toFixed(1);

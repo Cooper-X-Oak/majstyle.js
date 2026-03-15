@@ -1,7 +1,13 @@
+import { detectArchetype, getArchetypeAdvice } from './archetype-detector.js';
+import { DANGER_WEIGHTS } from '../config/constants.js';
+
 // 策略建议生成（增强版）
 export function generateAdvice(analysis, stats) {
+    var archetype = detectArchetype(stats);
+
     return {
         危险度: calculateDangerLevel(analysis, stats),
+        原型: archetype,
         综合实力: assessOverallStrength(stats),
         进攻特征: analyzeOffensePattern(stats),
         防守能力: analyzeDefense(stats),
@@ -9,7 +15,7 @@ export function generateAdvice(analysis, stats) {
         副露质量: analyzeFuluQuality(stats),
         速度评估: analyzeSpeed(stats),
         隐蔽性: analyzeConcealment(stats),
-        策略建议: generateStrategies(analysis, stats)
+        策略建议: generateStrategies(analysis, stats, archetype)
     };
 }
 
@@ -139,26 +145,72 @@ function analyzeDefense(stats) {
     };
 }
 
-// 危险度计算（增强版）
+// 危险度计算（增强版 - 10维度）
 function calculateDangerLevel(analysis, stats) {
+    var scores = {};
+    var totalWeight = 0;
+    var weightedSum = 0;
+
+    // 1. 净打点效率 (30% 权重) - 综合实力指标
     var netEfficiency = stats['净打点效率'] || 0;
+    scores.净打点效率 = normalizeScore(netEfficiency, -1000, 2000, 0, 10);
+    weightedSum += scores.净打点效率 * DANGER_WEIGHTS.净打点效率;
+    totalWeight += DANGER_WEIGHTS.净打点效率;
+
+    // 2. 默听率 (15% 权重) - 隐蔽性/危险性
     var motenRate = stats['默听率'] || 0;
+    scores.默听率 = motenRate * 50; // 0.2 = 10分
+    weightedSum += scores.默听率 * DANGER_WEIGHTS.默听率;
+    totalWeight += DANGER_WEIGHTS.默听率;
+
+    // 3. 立直收支 (20% 权重) - 立直质量
     var riichiProfit = stats['立直收支'] || 0;
+    scores.立直收支 = normalizeScore(riichiProfit, -1000, 3000, 0, 10);
+    weightedSum += scores.立直收支 * DANGER_WEIGHTS.立直收支;
+    totalWeight += DANGER_WEIGHTS.立直收支;
+
+    // 4. 平均铳点 (5% 权重) - 防守弱点（反向）
     var avgDealPoint = stats['平均铳点'] || 5000;
+    scores.平均铳点 = 10 - normalizeScore(avgDealPoint, 4000, 6000, 0, 10);
+    weightedSum += scores.平均铳点 * DANGER_WEIGHTS.平均铳点;
+    totalWeight += DANGER_WEIGHTS.平均铳点;
 
-    // 归一化到 0-10 分
-    var efficiencyScore = Math.min(10, Math.max(0, (netEfficiency + 1000) / 200));
-    var motenScore = motenRate * 50;
-    var riichiScore = Math.min(10, Math.max(0, riichiProfit / 500));
-    var dealScore = 10 - (avgDealPoint / 1000);
+    // 5. 被炸率 (10% 权重) - 大牌防守能力（反向）
+    var bombRate = stats['被炸率'] || 0;
+    scores.被炸率 = 10 - (bombRate * 100); // 0.1 = 0分
+    weightedSum += scores.被炸率 * DANGER_WEIGHTS.被炸率;
+    totalWeight += DANGER_WEIGHTS.被炸率;
 
-    var dangerLevel = (
-        efficiencyScore * 0.4 +
-        motenScore * 0.2 +
-        riichiScore * 0.3 +
-        dealScore * 0.1
-    );
+    // 6. 和了巡数 (10% 权重) - 速度（反向）
+    var avgTurn = stats['和了巡数'] || 12;
+    scores.和了巡数 = 10 - normalizeScore(avgTurn, 9, 14, 0, 10);
+    weightedSum += scores.和了巡数 * DANGER_WEIGHTS.和了巡数;
+    totalWeight += DANGER_WEIGHTS.和了巡数;
 
+    // 7. 立直后和牌率 (5% 权重) - 立直效率
+    var riichiWinRate = stats['立直后和牌率'] || 0;
+    scores.立直后和牌率 = riichiWinRate * 20; // 0.5 = 10分
+    weightedSum += scores.立直后和牌率 * DANGER_WEIGHTS.立直后和牌率;
+    totalWeight += DANGER_WEIGHTS.立直后和牌率;
+
+    // 8. 副露后和牌率 (3% 权重) - 副露效率
+    var fuluWinRate = stats['副露后和牌率'] || 0;
+    scores.副露后和牌率 = fuluWinRate * 25; // 0.4 = 10分
+    weightedSum += scores.副露后和牌率 * DANGER_WEIGHTS.副露后和牌率;
+    totalWeight += DANGER_WEIGHTS.副露后和牌率;
+
+    // 9. 和牌率 (2% 权重) - 基础进攻能力
+    var winRate = (stats['和牌率'] || 0) * 100;
+    scores.和牌率 = normalizeScore(winRate, 18, 26, 0, 10);
+    weightedSum += scores.和牌率 * DANGER_WEIGHTS.和牌率;
+    totalWeight += DANGER_WEIGHTS.和牌率;
+
+    // 10. 样本量置信度调整
+    var sampleSize = stats['count'] || 0;
+    var confidenceMultiplier = calculateConfidence(sampleSize);
+
+    // 计算最终危险度
+    var dangerLevel = (weightedSum / totalWeight) * confidenceMultiplier;
     dangerLevel = Math.round(Math.min(10, Math.max(0, dangerLevel)));
 
     var icon = '';
@@ -172,13 +224,37 @@ function calculateDangerLevel(analysis, stats) {
     return {
         分数: dangerLevel,
         图标: icon,
-        标签: label
+        标签: label,
+        置信度: (confidenceMultiplier * 100).toFixed(0) + '%',
+        维度得分: scores
     };
 }
 
+// 归一化分数到指定范围
+function normalizeScore(value, min, max, outMin, outMax) {
+    var normalized = (value - min) / (max - min);
+    normalized = Math.min(1, Math.max(0, normalized));
+    return outMin + normalized * (outMax - outMin);
+}
+
+// 计算样本量置信度
+function calculateConfidence(sampleSize) {
+    if (sampleSize >= 400) return 1.0;
+    if (sampleSize >= 200) return 0.95;
+    if (sampleSize >= 100) return 0.90;
+    if (sampleSize >= 50) return 0.80;
+    return 0.70;
+}
+
 // 综合策略建议生成
-function generateStrategies(analysis, stats) {
+function generateStrategies(analysis, stats, archetype) {
     var strategies = [];
+
+    // 优先添加原型特定建议
+    if (archetype) {
+        var archetypeAdvice = getArchetypeAdvice(archetype.key);
+        strategies = strategies.concat(archetypeAdvice);
+    }
 
     // 基于综合实力
     var netEff = stats['净打点效率'] || 0;
@@ -190,13 +266,13 @@ function generateStrategies(analysis, stats) {
 
     // 基于隐蔽性
     var motenRate = stats['默听率'] || 0;
-    if (motenRate > 0.12) {
+    if (motenRate > 0.12 && !archetype) {
         strategies.push('对手有较高默听倾向，警惕无征兆进攻');
     }
 
     // 基于速度
     var avgTurn = stats['和了巡数'] || 12;
-    if (avgTurn < 11) {
+    if (avgTurn < 11 && !archetype) {
         strategies.push('对手速度快，需要抢先进攻');
     } else if (avgTurn > 13) {
         strategies.push('对手速度慢，有时间布局');
@@ -204,7 +280,7 @@ function generateStrategies(analysis, stats) {
 
     // 基于立直质量
     var riichiProfit = stats['立直收支'] || 0;
-    if (riichiProfit > 2000) {
+    if (riichiProfit > 2000 && !archetype) {
         strategies.push('对手立直质量高，立直后建议立即弃牌');
     } else if (riichiProfit < 0) {
         strategies.push('对手立直质量不佳，可适度对抗');
@@ -212,7 +288,7 @@ function generateStrategies(analysis, stats) {
 
     // 基于副露质量
     var fuluWinRate = stats['副露后和牌率'] || 0;
-    if (fuluWinRate > 0.35) {
+    if (fuluWinRate > 0.35 && !archetype) {
         strategies.push('对手副露效率高，副露后威胁大');
     } else if (fuluWinRate < 0.25) {
         strategies.push('对手副露效率低，副露后可施压');
@@ -221,7 +297,7 @@ function generateStrategies(analysis, stats) {
     // 基于防守能力
     var avgDealPoint = stats['平均铳点'] || 5000;
     var dealRate = (stats['放铳率'] || 0) * 100;
-    if (avgDealPoint < 5000 && dealRate < 13) {
+    if (avgDealPoint < 5000 && dealRate < 13 && !archetype) {
         strategies.push('对手防守能力强，需要更高牌型质量');
     } else if (dealRate > 16) {
         strategies.push('对手容易放铳，积极施压可行');
@@ -233,6 +309,13 @@ function generateStrategies(analysis, stats) {
         strategies.push('对手被炸率高，大牌防守差，可以做大牌');
     }
 
-    // 限制建议数量（最多8条）
-    return strategies.slice(0, 8);
+    // 去重并限制建议数量（最多8条）
+    var uniqueStrategies = [];
+    for (var i = 0; i < strategies.length; i++) {
+        if (uniqueStrategies.indexOf(strategies[i]) === -1) {
+            uniqueStrategies.push(strategies[i]);
+        }
+    }
+
+    return uniqueStrategies.slice(0, 8);
 }

@@ -12,7 +12,7 @@ export function printAnalysis(playerData, analysis, baseline, index, isSelf, sta
     var 偏差 = analysis.偏差;
     var advice = generateAdvice(analysis, stats);
 
-    createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, playerData.nickname, isSelf);
+    createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, playerData.nickname, isSelf, advice.原型);
 
     var 标签文本 = 标签.length > 0 ? ' [' + 标签.join(', ') + ']' : '';
     console.log('  段位: ' + baseline.name + ' | 称号: ' + 主称号 + 标签文本);
@@ -34,7 +34,10 @@ export function printAnalysis(playerData, analysis, baseline, index, isSelf, sta
     console.log('    立直好型: ' + 数据.立直好型.toFixed(1) + '%');
     console.log('  ');
     console.log('  【策略建议】');
-    console.log('    危险度: ' + advice.危险度.图标 + ' ' + advice.危险度.分数 + '/10 - ' + advice.危险度.标签);
+    console.log('    危险度: ' + advice.危险度.图标 + ' ' + advice.危险度.分数 + '/10 - ' + advice.危险度.标签 + ' (置信度: ' + advice.危险度.置信度 + ')');
+    if (advice.原型) {
+        console.log('    玩家原型: ' + advice.原型.icon + ' ' + advice.原型.name + ' (匹配度: ' + advice.原型.score.toFixed(1) + ')');
+    }
     console.log('  ');
     console.log('    综合实力:');
     console.log('      净打点效率: ' + advice.综合实力.净打点效率 + ' (' + advice.综合实力.评价 + ')');
