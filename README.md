@@ -61,10 +61,18 @@
 
 详细安装步骤请查看 [安装指南](docs/user/installation.md)
 
-## 使用说明
+## 文档
 
+### 用户文档
+- [安装指南](docs/user/installation.md) - 详细安装步骤
 - [使用指南](docs/user/usage.md) - 界面说明、数据解读、策略建议
 - [技术参考](docs/technical/) - API 数据结构、游戏对象结构
+
+### 开发文档
+- [项目规范](spec/README.md) - 提案、设计、进度、决策记录管理
+- [设计文档](spec/active/designs/) - Phase 1 策略系统、参数配置
+- [进度跟踪](spec/active/progress/) - 各 Phase 实施进度
+- [架构决策](spec/active/decisions/) - 重要技术决策记录（ADR）
 
 ## 版本历史
 
