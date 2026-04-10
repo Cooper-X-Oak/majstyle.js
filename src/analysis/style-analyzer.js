@@ -18,8 +18,8 @@ export function analyzeStyle(stats, baseline) {
 
     var 进攻意愿 = 立直率 + 副露率;
     var 基准进攻意愿 = baseline.立直率 + baseline.副露率;
-    var 进攻效率 = (和牌率 / 进攻意愿) * 100;
-    var 基准进攻效率 = (baseline.和牌率 / 基准进攻意愿) * 100;
+    var 进攻效率 = 进攻意愿 > 0 ? (和牌率 / 进攻意愿) * 100 : 0;
+    var 基准进攻效率 = 基准进攻意愿 > 0 ? (baseline.和牌率 / 基准进攻意愿) * 100 : 0;
 
     var 进攻意愿偏差 = 进攻意愿 - 基准进攻意愿;
     var 进攻效率偏差 = 进攻效率 - 基准进攻效率;

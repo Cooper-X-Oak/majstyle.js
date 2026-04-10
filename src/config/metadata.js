@@ -2,8 +2,8 @@
 export var USERSCRIPT_METADATA = {
     name: '雀魂四麻风格分析助手',
     namespace: 'http://tampermonkey.net/',
-    version: '2.2.0-beta.2',
-    description: '四人麻将对手风格实时分析（支持所有段位）- Phase 2.2 强度评估系统',
+    version: '2.2.1',
+    description: '四人麻将对手风格实时分析（支持所有段位）- v2.2.1 算法修复',
     match: [
         'https://game.maj-soul.com/*',
         'https://game.maj-soul.net/*'

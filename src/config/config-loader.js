@@ -152,6 +152,13 @@ export function getDangerWeights() {
     return getConfigValue('danger_weights');
 }
 
+// 获取危险度归一化范围
+export function getDangerNormalization() {
+    'use strict';
+
+    return getConfigValue('danger_normalization');
+}
+
 // 获取风格阈值
 export function getStyleThresholds() {
     'use strict';

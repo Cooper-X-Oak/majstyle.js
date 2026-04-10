@@ -174,6 +174,18 @@
     "和牌率": 0.02
   },
 
+  "danger_normalization": {
+    "净打点效率":   { "min": -1000, "max": 2000, "inverted": false },
+    "默听率":       { "min": 0,     "max": 0.20,  "inverted": false },
+    "立直收支":     { "min": -1000, "max": 3000, "inverted": false },
+    "平均铳点":     { "min": 4000,  "max": 6000, "inverted": true  },
+    "被炸率":       { "min": 0,     "max": 0.10,  "inverted": true  },
+    "和了巡数":     { "min": 9,     "max": 14,   "inverted": true  },
+    "立直后和牌率": { "min": 0,     "max": 0.50,  "inverted": false },
+    "副露后和牌率": { "min": 0,     "max": 0.40,  "inverted": false },
+    "和牌率":       { "min": 0.18,  "max": 0.26,  "inverted": false }
+  },
+
   "style_thresholds": {
     "进攻意愿": { "高": 1.5, "低": -1.5 },
     "进攻效率": { "高": 2.0, "低": -2.0 },

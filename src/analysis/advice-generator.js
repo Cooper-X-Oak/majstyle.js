@@ -1,5 +1,5 @@
 import { detectArchetype, getArchetypeAdvice } from './archetype-detector.js';
-import { getDangerWeights } from '../config/config-loader.js';
+import { getDangerWeights, getDangerNormalization } from '../config/config-loader.js';
 import { evaluateAttackStrength, evaluateDefenseStrength } from './strength-evaluator.js';
 
 // 策略建议生成（增强版）
@@ -150,77 +150,36 @@ function analyzeDefense(stats) {
     };
 }
 
-// 危险度计算（增强版 - 10维度）
+// 危险度计算（config 驱动 - 所有归一化范围来自 danger_normalization）
 function calculateDangerLevel(analysis, stats) {
     'use strict';
 
-    // 从配置加载权重
     var DANGER_WEIGHTS = getDangerWeights();
+    var DANGER_NORM = getDangerNormalization();
 
-    var scores = {};
-    var totalWeight = 0;
     var weightedSum = 0;
+    var totalWeight = 0;
+    var scores = {};
 
-    // 1. 净打点效率 (30% 权重) - 综合实力指标
-    var netEfficiency = stats['净打点效率'] || 0;
-    scores.净打点效率 = normalizeScore(netEfficiency, -1000, 2000, 0, 10);
-    weightedSum += scores.净打点效率 * DANGER_WEIGHTS.净打点效率;
-    totalWeight += DANGER_WEIGHTS.净打点效率;
+    for (var field in DANGER_WEIGHTS) {
+        if (!DANGER_WEIGHTS.hasOwnProperty(field)) continue;
 
-    // 2. 默听率 (15% 权重) - 隐蔽性/危险性
-    var motenRate = stats['默听率'] || 0;
-    scores.默听率 = motenRate * 50; // 0.2 = 10分
-    weightedSum += scores.默听率 * DANGER_WEIGHTS.默听率;
-    totalWeight += DANGER_WEIGHTS.默听率;
+        var norm = DANGER_NORM[field];
+        var weight = DANGER_WEIGHTS[field];
+        var value = stats[field] || 0;
 
-    // 3. 立直收支 (20% 权重) - 立直质量
-    var riichiProfit = stats['立直收支'] || 0;
-    scores.立直收支 = normalizeScore(riichiProfit, -1000, 3000, 0, 10);
-    weightedSum += scores.立直收支 * DANGER_WEIGHTS.立直收支;
-    totalWeight += DANGER_WEIGHTS.立直收支;
+        var score = normalizeScore(value, norm.min, norm.max, norm.inverted);
+        scores[field] = score;
+        weightedSum += score * weight;
+        totalWeight += weight;
+    }
 
-    // 4. 平均铳点 (5% 权重) - 防守弱点（反向）
-    var avgDealPoint = stats['平均铳点'] || 5000;
-    scores.平均铳点 = 10 - normalizeScore(avgDealPoint, 4000, 6000, 0, 10);
-    weightedSum += scores.平均铳点 * DANGER_WEIGHTS.平均铳点;
-    totalWeight += DANGER_WEIGHTS.平均铳点;
+    var rawScore = weightedSum / totalWeight;
 
-    // 5. 被炸率 (10% 权重) - 大牌防守能力（反向）
-    var bombRate = stats['被炸率'] || 0;
-    scores.被炸率 = 10 - (bombRate * 100); // 0.1 = 0分
-    weightedSum += scores.被炸率 * DANGER_WEIGHTS.被炸率;
-    totalWeight += DANGER_WEIGHTS.被炸率;
-
-    // 6. 和了巡数 (10% 权重) - 速度（反向）
-    var avgTurn = stats['和了巡数'] || 12;
-    scores.和了巡数 = 10 - normalizeScore(avgTurn, 9, 14, 0, 10);
-    weightedSum += scores.和了巡数 * DANGER_WEIGHTS.和了巡数;
-    totalWeight += DANGER_WEIGHTS.和了巡数;
-
-    // 7. 立直后和牌率 (5% 权重) - 立直效率
-    var riichiWinRate = stats['立直后和牌率'] || 0;
-    scores.立直后和牌率 = riichiWinRate * 20; // 0.5 = 10分
-    weightedSum += scores.立直后和牌率 * DANGER_WEIGHTS.立直后和牌率;
-    totalWeight += DANGER_WEIGHTS.立直后和牌率;
-
-    // 8. 副露后和牌率 (3% 权重) - 副露效率
-    var fuluWinRate = stats['副露后和牌率'] || 0;
-    scores.副露后和牌率 = fuluWinRate * 25; // 0.4 = 10分
-    weightedSum += scores.副露后和牌率 * DANGER_WEIGHTS.副露后和牌率;
-    totalWeight += DANGER_WEIGHTS.副露后和牌率;
-
-    // 9. 和牌率 (2% 权重) - 基础进攻能力
-    var winRate = (stats['和牌率'] || 0) * 100;
-    scores.和牌率 = normalizeScore(winRate, 18, 26, 0, 10);
-    weightedSum += scores.和牌率 * DANGER_WEIGHTS.和牌率;
-    totalWeight += DANGER_WEIGHTS.和牌率;
-
-    // 10. 样本量置信度调整
+    // 置信度：向中性值 5 收缩，而非直接缩放
     var sampleSize = stats['count'] || 0;
-    var confidenceMultiplier = calculateConfidence(sampleSize);
-
-    // 计算最终危险度
-    var dangerLevel = (weightedSum / totalWeight) * confidenceMultiplier;
+    var confidence = calculateConfidence(sampleSize);
+    var dangerLevel = 5 + (rawScore - 5) * confidence;
     dangerLevel = Math.round(Math.min(10, Math.max(0, dangerLevel)));
 
     var icon = '';
@@ -235,16 +194,17 @@ function calculateDangerLevel(analysis, stats) {
         分数: dangerLevel,
         图标: icon,
         标签: label,
-        置信度: (confidenceMultiplier * 100).toFixed(0) + '%',
+        置信度: (confidence * 100).toFixed(0) + '%',
         维度得分: scores
     };
 }
 
-// 归一化分数到指定范围
-function normalizeScore(value, min, max, outMin, outMax) {
+// 归一化分数到 0-10，inverted=true 时反向（值越小得分越高）
+function normalizeScore(value, min, max, inverted) {
     var normalized = (value - min) / (max - min);
     normalized = Math.min(1, Math.max(0, normalized));
-    return outMin + normalized * (outMax - outMin);
+    if (inverted) normalized = 1 - normalized;
+    return normalized * 10;
 }
 
 // 计算样本量置信度
