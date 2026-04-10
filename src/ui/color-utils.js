@@ -1,17 +1,17 @@
+import { COLORS } from './design-tokens.js';
+
 // 根据偏差值计算颜色深浅
 export function getColor(deviation, threshold) {
     var absValue = Math.abs(deviation);
     if (deviation > 0) {
-        // 正偏差：红色，越大越红
-        if (absValue > threshold * 2) return '#ff4444';
-        if (absValue > threshold) return '#ff6b6b';
-        return '#ff9999';
+        if (absValue > threshold * 2) return COLORS.deviation.posStrong;
+        if (absValue > threshold)     return COLORS.deviation.posMid;
+        return COLORS.deviation.posWeak;
     } else if (deviation < 0) {
-        // 负偏差：绿色，越大越绿
-        if (absValue > threshold * 2) return '#44ff44';
-        if (absValue > threshold) return '#51cf66';
-        return '#99ff99';
+        if (absValue > threshold * 2) return COLORS.deviation.negStrong;
+        if (absValue > threshold)     return COLORS.deviation.negMid;
+        return COLORS.deviation.negWeak;
     } else {
-        return '#aaa';
+        return COLORS.deviation.neutral;
     }
 }
