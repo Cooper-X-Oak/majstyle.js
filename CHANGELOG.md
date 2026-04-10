@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## [2.2.2] - 2026-04-11 (bug-agent 修复版)
+
+### 修复
+
+**BUG-05：加载阶段大量报错 + 游戏加载变慢（严重）**
+
+- 根本原因：旧版每秒轮询 `view.DesktopMgr`，触发游戏 Reactive Proxy 错误处理器，每次产生一个 aliyuncs HTTP 请求（也失败），加载阶段累计 10~30 次错误链
+- 修复一：新增 `isInGame()` 两阶段守卫（`src/game/game-bridge.js`）
+  - 第一阶段检查 `GameMgr.Inst.ingame`（安全，不触发 Proxy）
+  - 第二阶段检查 `DesktopMgr.Inst.gameing`（精确，`player_datas` 就绪的真正信号）
+  - 实测：`ingame: true` 与 `gameing: true` 之间有约 8 秒间隔，旧版在此期间会反复触发 Proxy 错误
+- 修复二：`setInterval` 轮询 → `MutationObserver`（`src/main.js`）
+  - 对局中游戏动画帧持续产生 DOM mutations，足以驱动检测，无需主动轮询
+- 修复三：`debounce` → `throttle`（`src/main.js`）
+  - 游戏动画帧约每 16ms 触发一次 mutation，debounce 会被持续重置永远不执行
+  - throttle 策略：第一次触发后锁定 1 秒，期间忽略后续调用
+
+### 新增
+
+- `tools/web-tools/game-state-monitor.user.js`：游戏状态监测工具（Tampermonkey）
+  - 实时监测 `ingame`、`DesktopMgr.gameing`、`game_status`、场景切换等关键信号
+  - 监测主脚本状态（`window.majstyleJS.status`）和分析卡片数量
+  - 事件日志仅记录变化，Alt+M 收起面板
+  - 用于调试触发时机，测试完成后卸载
+- `docs/technical/BUG_ANALYSIS_RUNTIME.md`：运行时 Bug 分析与修复记录
+
+### 技术细节
+
+详见 `docs/technical/BUG_ANALYSIS_RUNTIME.md`
+
+---
+
 ## [2.2.0-beta.2] - 2026-03-15 (测试版 - Phase 2.2 强度评估系统)
 
 ### Phase 2.2: 进攻/防守强度评估系统
@@ -9,6 +41,7 @@
 #### 新增功能
 
 **强度评估系统**
+
 - ⚔️ **进攻强度评估** (0-100 分，Lv.1-10)
   - 立直进攻 (30% 权重): 基于立直率、立直收支、立直后和牌率
   - 副露进攻 (25% 权重): 基于副露率、副露后和牌率
@@ -21,11 +54,13 @@
   - 立直防守 (10% 权重): 基于立直后放铳率
 
 **态度词生成**
+
 - 进攻态度词: 立直狂、副露狂、速攻狂、大牌型等
 - 防守态度词: 铁壁、防守稳健、隐蔽高手、防守弱等
 - 支持组合态度词（如"立直狂 + 速攻狂"）
 
 **等级映射**
+
 - Lv.1-2: 初学者水平（灰色）
 - Lv.3-4: 青铜水平（灰色）
 - Lv.5-6: 白银水平（蓝色）
@@ -34,17 +69,20 @@
 - Lv.10: 传说水平（金色）
 
 **完全配置化**
+
 - ✅ 所有权重配置化（进攻/防守子维度权重）
 - ✅ 所有归一化范围配置化（立直率 10%-30%、和了巡数 14-9 巡等）
 - ✅ 所有态度词阈值配置化（立直狂、铁壁等触发条件）
 - ✅ 无任何硬编码，全部从 `analysis-config.json` 读取
 
 **UI 展示增强**
+
 - 在玩家卡片顶部显示强度信息
 - ⚔️ 进攻 Lv.X 态度词（带颜色编码）
 - 🛡️ 防守 Lv.X 态度词（带颜色编码）
 
 **控制台详细输出**
+
 - 输出强度评估的完整过程
 - 显示每个子维度的得分（0-10 分）
 - 显示总分（0-100 分）和等级
@@ -52,6 +90,7 @@
 #### 技术实现
 
 **新增文件**
+
 - `src/analysis/strength-evaluator.js`: 强度评估器（完全配置化）
   - `evaluateAttackStrength()`: 评估进攻强度
   - `evaluateDefenseStrength()`: 评估防守强度
@@ -60,6 +99,7 @@
   - `getStrengthLevel()`: 获取强度等级
 
 **修改文件**
+
 - `src/config/analysis-config.json`: 新增 `strength_calculation` 配置节
   - `attack.weights`: 进攻子维度权重
   - `attack.normalization`: 归一化范围
@@ -126,6 +166,7 @@
 #### 新增功能
 
 **配置化系统**
+
 - 📋 **analysis-config.json**: 分析配置文件
   - 维度定义（5 个分析维度：立直倾向、副露倾向、防守倾向、速度倾向、打点倾向）
   - 原型定义（6 种核心原型：立直专家、副露专家、默听猎手、速攻型、价值型、防守型）
@@ -140,6 +181,7 @@
   - 提供配置访问接口
 
 **技术文档系统**
+
 - 📚 **ANALYSIS_ALGORITHM.md**: 分析算法技术文档（5000+ 行）
   - 数据源说明（51 个 API 字段详细说明）
   - 分析维度（8 个维度的计算公式和推理逻辑）
@@ -156,18 +198,21 @@
 #### 改进
 
 **分析模块重构**
+
 - 🔄 **style-analyzer.js**: 从配置读取阈值（不再硬编码）
 - 🔄 **advice-generator.js**: 从配置读取权重（不再硬编码）
 - 🔄 **archetype-detector.js**: 从配置读取原型定义（支持新的条件格式）
 - 🔄 **constants.js**: 保留段位基准数据和 API 配置（不变）
 
 **构建系统增强**
+
 - 📦 **@rollup/plugin-json**: 支持 JSON 文件导入
 - 🔧 **rollup.config.js**: 添加 JSON 插件
 
 #### 技术细节
 
 **配置热更新**
+
 ```javascript
 // 在浏览器控制台执行，无需重新构建
 var customConfig = {
@@ -179,6 +224,7 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 ```
 
 **配置文件结构**
+
 - `version`: 配置版本号
 - `dimensions`: 分析维度定义
 - `archetypes`: 玩家原型定义
@@ -203,6 +249,7 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 新增功能
 
 **策略建议可解释性系统**
+
 - 📊 **结构化建议**: 每条建议包含建议内容、理由、置信度、优先级、来源
 - 🔍 **详细理由**: 包含触发条件、数据支撑、推理逻辑、战术含义四个维度
 - 🎯 **优先级量化**: 基于偏差程度计算建议优先级（0-10 分）
@@ -210,6 +257,7 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 - 🏷️ **来源追溯**: 标注建议来源（玩家原型、综合实力、立直质量等）
 
 **策略解释文档系统**
+
 - 📚 **STRATEGY_EXPLANATION.md**: 5000+ 行完整策略解释文档
   - 关键指标的战术意义（10 个核心指标）
   - 玩家原型详解（6 种原型的完整说明）
@@ -224,6 +272,7 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
   - 标注验证状态（✅ 已验证 / ⚠️ 待验证 / ❌ 需改进）
 
 **增强的 UI 展示**
+
 - 🎨 **危险度可视化**: 显示危险度分数、等级、置信度，带颜色编码
 - 📝 **建议详情展开**: 点击建议可展开查看详细分析（触发条件、数据支撑、推理逻辑、战术含义）
 - 🏆 **优先级标识**: 建议按优先级排序，高优先级建议用红色标识
@@ -233,6 +282,7 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 改进
 
 **建议生成逻辑增强**
+
 - 🧠 **解释函数**: 为每个分析维度添加专门的解释函数
   - `explainOverallStrength()` - 解释综合实力评估
   - `explainRiichiQuality()` - 解释立直质量
@@ -246,6 +296,7 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 - 🎯 **推理透明**: 清晰展示从数据到建议的推理过程
 
 **控制台输出增强**
+
 - 📝 **结构化输出**: 控制台显示建议的来源、置信度、优先级
 - 🔍 **触发条件显示**: 显示每条建议的触发条件
 - 📊 **更清晰的格式**: 改进控制台输出格式，便于调试
@@ -253,11 +304,13 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 文档
 
 **新增文档**
+
 - 📚 `docs/strategy/STRATEGY_EXPLANATION.md` - 策略分析系统完整解释
 - 📋 `docs/strategy/CURRENT_PARAMETERS.md` - 当前参数配置说明
 - 🎯 两份文档共计 8000+ 行，覆盖所有策略逻辑
 
 **文档内容**
+
 - 10 个关键指标的战术意义（定义、典型范围、战术意义、对局影响、推理基础）
 - 6 种玩家原型的详细解析（定义条件、战术特征、典型数据、对局策略、理论依据、阈值依据）
 - 7 条策略建议的生成逻辑（触发条件、推理过程、数据支撑、战术建议、期望值计算）
@@ -267,12 +320,15 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 技术改进
 
 **代码结构优化**
+
 - 🏗️ **新增文件**: `src/ui/player-info-card-enhanced.js` - 增强版 UI 组件
 - 🔄 **向后兼容**: 保留旧版 UI 组件，确保兼容性
 - 📦 **模块化设计**: 解释函数独立封装，便于维护和测试
 
 **数据结构改进**
+
 - 📊 **建议对象**: 从简单字符串升级为结构化对象
+  
   ```javascript
   {
       建议: '对手立直质量高，立直后建议立即弃牌',
@@ -291,11 +347,13 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 下一步计划
 
 **Phase 2: 理论基础建设**（后续任务）
+
 - 📚 收集麻将战术理论资料（《科学麻将》、《现代麻将技术论》等）
 - 🔍 基于理论重新审视参数
 - 📊 建立理论依据文档
 
 **Phase 3: 统计分析与验证**（长期任务）
+
 - 📊 收集 1000+ 金玉段位玩家数据
 - 🔬 计算各指标的统计分布
 - 🎯 使用统计方法确定最优阈值和权重
@@ -318,12 +376,14 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 新增功能
 
 **玩家原型检测系统**
+
 - 🎯 **6种核心原型**: 立直专家、副露专家、默听猎手、速攻型、价值型、防守型
 - 🔍 **智能匹配算法**: 基于多维度条件自动识别玩家打法风格
 - 📊 **匹配度评分**: 显示原型匹配置信度
 - 🎨 **原型图标**: 每种原型配有专属 emoji 图标，UI 显示更直观
 
 **10维度危险度评估系统**
+
 - ⚡ **增强危险度计算**: 从 4 维度扩展到 10 维度
   1. 净打点效率 (30% 权重) - 综合实力
   2. 默听率 (15% 权重) - 隐蔽性
@@ -343,12 +403,14 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 - 🎯 **归一化评分**: 所有维度统一归一化到 0-10 分，确保公平性
 
 **原型驱动的策略建议**
+
 - 🧠 **上下文感知建议**: 根据检测到的玩家原型生成针对性建议
 - 📋 **原型专属建议库**: 每种原型配有 3 条专属战术建议
 - 🔄 **智能去重**: 避免重复建议，优先显示原型特定建议
 - 📊 **建议优先级**: 原型建议 > 综合实力建议 > 细节建议
 
 **API 字段完整映射**
+
 - 📚 **51 个字段定义**: 在 constants.js 中建立完整的 API 字段映射表
 - 🏷️ **中文字段名**: 所有字段配有清晰的中文标识
 - 📦 **分类组织**: 按基础统计、效率指标、条件统计、时序指标、防守指标分类
@@ -356,16 +418,19 @@ localStorage.setItem('majstyle_custom_config', JSON.stringify(customConfig));
 #### 改进
 
 **UI 增强**
+
 - 🎨 **原型图标显示**: 在玩家信息卡标题中显示原型图标和名称
 - 📊 **置信度显示**: 危险度评分旁显示置信度百分比
 - 🎯 **匹配度显示**: 控制台输出原型匹配度评分
 
 **控制台输出增强**
+
 - 📈 **原型信息**: 显示检测到的玩家原型和匹配度
 - 🔍 **置信度信息**: 显示危险度评分的置信度
 - 📊 **维度得分**: 可查看各维度的详细得分（调试用）
 
 **代码架构优化**
+
 - 🏗️ **新增模块**: `archetype-detector.js` - 专门处理原型检测
 - 📦 **配置扩展**: `constants.js` 新增原型定义和危险度权重配置
 - 🔧 **函数重构**: `calculateDangerLevel()` 完全重写，支持 10 维度评估

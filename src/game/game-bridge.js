@@ -17,6 +17,23 @@ export function getPlayerDatas() {
     }
 }
 
+// 判断牌局是否真正进行中
+// 两阶段检查：ingame（安全，不触发 Proxy）→ DesktopMgr.gameing（精确，player_datas 可用）
+// 注意：ingame=true 只代表游戏会话建立，gameing=true 才代表牌局开始、player_datas 就绪
+export function isInGame() {
+    var gameWindow = getGameWindow();
+    try {
+        if (!(gameWindow && gameWindow.GameMgr &&
+              gameWindow.GameMgr.Inst && gameWindow.GameMgr.Inst.ingame)) {
+            return false;
+        }
+        var dm = gameWindow.view && gameWindow.view.DesktopMgr && gameWindow.view.DesktopMgr.Inst;
+        return !!(dm && dm.gameing);
+    } catch(e) {
+        return false;
+    }
+}
+
 // 获取当前用户的账号ID
 export function getMyAccountId() {
     var gameWindow = getGameWindow();
