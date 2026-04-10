@@ -1,6 +1,32 @@
-import { getColor } from './color-utils.js';
+import { getColor, getDealRateColor } from './color-utils.js';
 import { escapeHtml } from '../utils/html-escape.js';
 import { COLORS, BACKGROUNDS, LAYOUT, TYPOGRAPHY } from './design-tokens.js';
+
+// 获取称号对应的稀有度配置
+function getRarity(称号) {
+    return COLORS.rarity[称号] || COLORS.rarity['default'];
+}
+
+// 构建渐变边框容器样式
+function buildCardStyle(rarity) {
+    var bg = BACKGROUNDS.card;
+    return [
+        'position: fixed',
+        'border: 1px solid transparent',
+        'background: linear-gradient(' + bg + ', ' + bg + ') padding-box, linear-gradient(135deg, ' + rarity.from + ', ' + rarity.to + ') border-box',
+        'box-shadow: 0 0 10px ' + rarity.glow + ', ' + BACKGROUNDS.shadow,
+        'color: ' + COLORS.text,
+        'padding: ' + LAYOUT.padding,
+        'border-radius: ' + LAYOUT.borderRadius,
+        'font-size: ' + TYPOGRAPHY.data.size,
+        'z-index: ' + LAYOUT.zIndex,
+        'pointer-events: auto',
+        'width: auto',
+        'max-width: ' + LAYOUT.maxWidthCompact,
+        'cursor: pointer',
+        'transition: box-shadow 0.2s ease'
+    ].join('; ') + '; ';
+}
 
 // 创建无数据提示UI
 export function createNoDataUI(index, nickname, isSelf) {
@@ -13,14 +39,13 @@ export function createNoDataUI(index, nickname, isSelf) {
     container.style.cssText = [
         'position: fixed',
         'background: ' + BACKGROUNDS.cardDim,
+        'border: 1px solid rgba(255,255,255,0.08)',
         'color: ' + COLORS.playerName,
         'padding: ' + LAYOUT.padding,
         'border-radius: ' + LAYOUT.borderRadius,
-        'font-size: ' + TYPOGRAPHY.body.size,
+        'font-size: ' + TYPOGRAPHY.tag.size,
         'z-index: ' + LAYOUT.zIndex,
-        'box-shadow: ' + BACKGROUNDS.shadow,
         'pointer-events: none',
-        'width: auto',
         'white-space: nowrap'
     ].join('; ') + '; ';
 
@@ -33,35 +58,22 @@ export function createNoDataUI(index, nickname, isSelf) {
         window.majstyleJS.playerUICounter++;
     }
 
-    var html = '<div style="color: ' + COLORS.playerName + '; font-size: ' + TYPOGRAPHY.body.size + ';">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</div>';
-    html += '<div style="color: ' + COLORS.hint + '; font-size: ' + TYPOGRAPHY.aux.size + '; margin-top: 2px;">无牌谱数据</div>';
-    container.innerHTML = html;
+    container.innerHTML = '<span style="color: ' + COLORS.playerName + ';">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>'
+        + '<span style="color: rgba(255,255,255,0.2); margin-left: 6px;">无数据</span>';
     document.body.appendChild(container);
 }
 
-// 创建玩家风格信息UI（增强版）
+// 创建玩家风格信息UI
 export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, nickname, isSelf, archetype, advice) {
     var existingUI = document.getElementById('player-style-' + index);
     if (existingUI) { existingUI.remove(); }
 
+    var rarity = getRarity(主称号);
+
     var container = document.createElement('div');
     container.id = 'player-style-' + index;
     container.className = 'majsoul-style-info';
-    container.style.cssText = [
-        'position: fixed',
-        'background: ' + BACKGROUNDS.card,
-        'color: ' + COLORS.text,
-        'padding: ' + LAYOUT.padding,
-        'border-radius: ' + LAYOUT.borderRadius,
-        'font-size: ' + TYPOGRAPHY.body.size,
-        'z-index: ' + LAYOUT.zIndex,
-        'box-shadow: ' + BACKGROUNDS.shadow,
-        'pointer-events: auto',
-        'width: auto',
-        'max-width: ' + LAYOUT.maxWidthCompact,
-        'cursor: pointer',
-        'transition: all 0.2s ease'
-    ].join('; ') + '; ';
+    container.style.cssText = buildCardStyle(rarity);
 
     if (isSelf) {
         container.style.cssText += LAYOUT.positions.self;
@@ -72,125 +84,83 @@ export function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, bas
         window.majstyleJS.playerUICounter++;
     }
 
-    var titleText = archetype ? (archetype.icon + ' ' + archetype.name) : 主称号;
-    var playerNameHtml = '<span style="color: ' + COLORS.playerName + '; font-size: ' + TYPOGRAPHY.aux.size + ';">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
-    var titleStyle = 'font-weight: ' + TYPOGRAPHY.title.weight + '; font-size: ' + TYPOGRAPHY.title.size + '; color: ' + COLORS.title + '; margin-bottom: 4px;';
-    var dividerStyle = 'border-top: 1px solid ' + COLORS.divider + '; padding-top: 4px; margin-top: 4px;';
+    // ── 标题行：图标 + 【称号】+ 昵称 ──
+    var titleHtml = '<div style="font-size: ' + TYPOGRAPHY.title.size + '; font-weight: ' + TYPOGRAPHY.title.weight + '; margin-bottom: 3px; white-space: nowrap;">';
+    titleHtml += '<span style="margin-right: 4px;">' + rarity.icon + '</span>';
+    titleHtml += '<span style="background: linear-gradient(90deg, ' + rarity.from + ', ' + rarity.to + '); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">【' + escapeHtml(主称号) + '】</span>';
+    titleHtml += '<span style="color: ' + COLORS.playerName + '; font-size: ' + TYPOGRAPHY.tag.size + '; font-weight: normal; margin-left: 4px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
+    titleHtml += '</div>';
 
-    // ── 精简视图 ──
-    var compactHtml = '<div style="' + titleStyle + '">【' + escapeHtml(titleText) + '】' + playerNameHtml + '</div>';
-
-    if (advice && advice.进攻强度 && advice.防守强度) {
-        compactHtml += '<div style="font-size: ' + TYPOGRAPHY.body.size + '; line-height: ' + TYPOGRAPHY.lineHeight + ';">';
-        compactHtml += '⚔️ <span style="color: ' + advice.进攻强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.进攻强度.标签) + '</span> ';
-        compactHtml += '🛡️ <span style="color: ' + advice.防守强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.防守强度.标签) + '</span>';
-        compactHtml += '</div>';
+    // ── 标签行 ──
+    var tagHtml = '';
+    if (标签.length > 0) {
+        tagHtml = '<div style="color: ' + COLORS.tag + '; font-size: ' + TYPOGRAPHY.tag.size + '; margin-bottom: 5px; letter-spacing: 0.3px;">'
+            + 标签.slice(0, 4).map(escapeHtml).join(' · ')
+            + '</div>';
     }
 
-    if (advice && advice.危险度) {
-        compactHtml += '<div style="font-size: ' + TYPOGRAPHY.body.size + '; color: ' + getDangerColor(advice.危险度.分数) + '; margin-top: 2px;">';
-        compactHtml += advice.危险度.图标 + ' ' + advice.危险度.分数 + '/10';
-        compactHtml += '</div>';
-    }
+    // ── 分隔线 ──
+    var divider = '<div style="border-top: 1px solid ' + COLORS.divider + '; margin-bottom: 4px;"></div>';
 
-    compactHtml += '<div style="font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.hint + '; margin-top: 4px; text-align: center;">▼ 点击展开</div>';
-
-    // ── 详细视图 ──
-    var detailHtml = '<div style="' + titleStyle + '">【' + escapeHtml(titleText) + '】' + playerNameHtml + '</div>';
-
-    if (advice && advice.进攻强度 && advice.防守强度) {
-        detailHtml += '<div style="margin-bottom: 4px; font-size: ' + TYPOGRAPHY.body.size + '; line-height: ' + TYPOGRAPHY.lineHeight + ';">';
-        detailHtml += '⚔️ <span style="color: ' + advice.进攻强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.进攻强度.标签) + '</span>';
-        if (advice.进攻强度.态度词) {
-            detailHtml += ' <span style="color: ' + COLORS.secondary + ';">(' + escapeHtml(advice.进攻强度.态度词) + ')</span>';
-        }
-        detailHtml += '<br>';
-        detailHtml += '🛡️ <span style="color: ' + advice.防守强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.防守强度.标签) + '</span>';
-        if (advice.防守强度.态度词) {
-            detailHtml += ' <span style="color: ' + COLORS.secondary + ';">(' + escapeHtml(advice.防守强度.态度词) + ')</span>';
-        }
-        detailHtml += '</div>';
-    }
-
-    if (advice && advice.危险度) {
-        detailHtml += '<div style="font-size: ' + TYPOGRAPHY.body.size + '; color: ' + getDangerColor(advice.危险度.分数) + '; margin-bottom: 4px;">';
-        detailHtml += advice.危险度.图标 + ' 危险度: ' + advice.危险度.分数 + '/10 - ' + escapeHtml(advice.危险度.标签);
-        detailHtml += '</div>';
-    }
-
-    detailHtml += '<div style="line-height: ' + TYPOGRAPHY.lineHeight + '; font-size: ' + TYPOGRAPHY.body.size + '; ' + dividerStyle + '">';
-
+    // ── 数据行 ──
     var 立直偏差 = (数据.立直率 - baseline.立直率).toFixed(1);
     var 副露偏差 = (数据.副露率 - baseline.副露率).toFixed(1);
     var 和牌偏差 = (数据.和牌率 - baseline.和牌率).toFixed(1);
     var 放铳偏差 = 偏差.放铳率.toFixed(1);
     var 打点偏差 = 偏差.打点.toFixed(0);
 
-    detailHtml += '<div>立直: <span style="color: ' + getColor(parseFloat(立直偏差), 2) + '">' + 数据.立直率.toFixed(1) + '% (' + (立直偏差 > 0 ? '+' : '') + 立直偏差 + '%)</span></div>';
-    detailHtml += '<div>副露: <span style="color: ' + getColor(parseFloat(副露偏差), 3) + '">' + 数据.副露率.toFixed(1) + '% (' + (副露偏差 > 0 ? '+' : '') + 副露偏差 + '%)</span></div>';
-    detailHtml += '<div>和牌: <span style="color: ' + getColor(parseFloat(和牌偏差), 1.5) + '">' + 数据.和牌率.toFixed(1) + '% (' + (和牌偏差 > 0 ? '+' : '') + 和牌偏差 + '%)</span></div>';
-    detailHtml += '<div>放铳: <span style="color: ' + getColor(parseFloat(放铳偏差), 1.5) + '">' + 数据.放铳率.toFixed(1) + '% (' + (放铳偏差 > 0 ? '+' : '') + 放铳偏差 + '%)</span></div>';
-    detailHtml += '<div>打点: <span style="color: ' + getColor(parseFloat(打点偏差), 300) + '">' + 数据.平均打点 + ' (' + (打点偏差 > 0 ? '+' : '') + 打点偏差 + ')</span></div>';
-    detailHtml += '</div>';
-
-    if (advice && advice.策略建议 && advice.策略建议.length > 0) {
-        detailHtml += '<div style="' + dividerStyle + '">';
-        detailHtml += '<div style="font-weight: bold; font-size: ' + TYPOGRAPHY.body.size + '; color: ' + COLORS.strategyTitle + '; margin-bottom: 4px;">策略建议:</div>';
-
-        for (var i = 0; i < Math.min(advice.策略建议.length, 3); i++) {
-            var strategy = advice.策略建议[i];
-            if (typeof strategy === 'string') {
-                detailHtml += '<div style="margin-bottom: 4px; font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.textMuted + ';">• ' + escapeHtml(strategy) + '</div>';
-            } else {
-                var priorityColor = getPriorityColor(strategy.优先级);
-                detailHtml += '<div style="margin-bottom: 4px; font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.textMuted + '; border-left: 2px solid ' + priorityColor + '; padding-left: 4px;">';
-                detailHtml += '• ' + escapeHtml(strategy.建议);
-                detailHtml += '</div>';
-            }
-        }
-
-        detailHtml += '</div>';
+    function dataRow(label, value, deviationStr, color) {
+        var sign = parseFloat(deviationStr) > 0 ? '+' : '';
+        return '<div style="display: flex; justify-content: space-between; line-height: ' + TYPOGRAPHY.lineHeight + ';">'
+            + '<span style="color: rgba(255,255,255,0.45); margin-right: 8px;">' + label + '</span>'
+            + '<span style="color: ' + color + ';">' + value + ' <span style="font-size: 8px; opacity: 0.8;">(' + sign + deviationStr + ')</span></span>'
+            + '</div>';
     }
 
-    detailHtml += '<div style="font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.hint + '; margin-top: 4px; text-align: center;">▲ 点击收起</div>';
+    var dataHtml = '<div style="font-size: ' + TYPOGRAPHY.data.size + ';">'
+        + dataRow('立直', 数据.立直率.toFixed(1) + '%', 立直偏差 + '%', getColor(parseFloat(立直偏差), 2))
+        + dataRow('副露', 数据.副露率.toFixed(1) + '%', 副露偏差 + '%', getColor(parseFloat(副露偏差), 3))
+        + dataRow('和牌', 数据.和牌率.toFixed(1) + '%', 和牌偏差 + '%', getColor(parseFloat(和牌偏差), 1.5))
+        + dataRow('放铳', 数据.放铳率.toFixed(1) + '%', 放铳偏差 + '%', getDealRateColor(parseFloat(放铳偏差), 1.5))
+        + dataRow('打点', String(数据.平均打点), 打点偏差, getColor(parseFloat(打点偏差), 300))
+        + '</div>';
 
-    var html = '<div class="compact-view">' + compactHtml + '</div>';
-    html += '<div class="detail-view" style="display: none;">' + detailHtml + '</div>';
+    // ── 精简视图 ──
+    var compactHtml = titleHtml + tagHtml + divider + dataHtml;
+
+    // ── 展开视图（+策略建议）──
+    var detailExtra = '';
+    if (advice && advice.策略建议 && advice.策略建议.length > 0) {
+        detailExtra += '<div style="border-top: 1px solid ' + COLORS.divider + '; margin-top: 5px; padding-top: 4px;">';
+        detailExtra += '<div style="font-size: ' + TYPOGRAPHY.tag.size + '; color: ' + COLORS.strategyTitle + '; margin-bottom: 3px; font-weight: bold;">策略</div>';
+        for (var i = 0; i < Math.min(advice.策略建议.length, 3); i++) {
+            var s = advice.策略建议[i];
+            var text = typeof s === 'string' ? s : s.建议;
+            var pColor = s.优先级 >= 7 ? COLORS.priority.high : s.优先级 >= 4 ? COLORS.priority.mid : COLORS.priority.low;
+            detailExtra += '<div style="font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.textMuted + '; border-left: 2px solid ' + pColor + '; padding-left: 5px; margin-bottom: 3px;">• ' + escapeHtml(text) + '</div>';
+        }
+        detailExtra += '</div>';
+    }
+
+    var hintStyle = 'font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.hint + '; text-align: right; margin-top: 3px;';
+    var html = '<div class="compact-view">' + compactHtml + '<div style="' + hintStyle + '">▾</div></div>';
+    html += '<div class="detail-view" style="display:none;">' + compactHtml + detailExtra + '<div style="' + hintStyle + '">▴</div></div>';
 
     container.innerHTML = html;
     document.body.appendChild(container);
 
     container.addEventListener('click', function(e) {
         e.stopPropagation();
-        var compactView = container.querySelector('.compact-view');
-        var detailView = container.querySelector('.detail-view');
-
-        if (compactView.style.display === 'none') {
-            compactView.style.display = 'block';
-            detailView.style.display = 'none';
+        var cv = container.querySelector('.compact-view');
+        var dv = container.querySelector('.detail-view');
+        if (cv.style.display === 'none') {
+            cv.style.display = 'block';
+            dv.style.display = 'none';
             container.style.maxWidth = LAYOUT.maxWidthCompact;
         } else {
-            compactView.style.display = 'none';
-            detailView.style.display = 'block';
+            cv.style.display = 'none';
+            dv.style.display = 'block';
             container.style.maxWidth = LAYOUT.maxWidthExpanded;
         }
     });
-}
-
-// 危险度颜色（使用设计令牌）
-function getDangerColor(score) {
-    if (score >= 9) return COLORS.danger.critical;
-    if (score >= 7) return COLORS.danger.high;
-    if (score >= 5) return COLORS.danger.medium;
-    if (score >= 3) return COLORS.danger.low;
-    return COLORS.danger.safe;
-}
-
-// 优先级颜色（复用危险度色阶）
-function getPriorityColor(priority) {
-    if (priority >= 8) return COLORS.danger.critical;
-    if (priority >= 6) return COLORS.danger.high;
-    if (priority >= 4) return COLORS.danger.medium;
-    if (priority >= 2) return COLORS.danger.low;
-    return COLORS.danger.safe;
 }

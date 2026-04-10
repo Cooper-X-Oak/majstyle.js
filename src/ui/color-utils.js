@@ -1,17 +1,19 @@
 import { COLORS } from './design-tokens.js';
 
-// 根据偏差值计算颜色深浅
+// 放铳率专用颜色（危险导向：高于基准=红）
+export function getDealRateColor(deviation, threshold) {
+    if (deviation > threshold * 2) return COLORS.dealRate.strong;
+    if (deviation > threshold)     return COLORS.dealRate.mid;
+    if (deviation > 0)             return COLORS.dealRate.weak;
+    if (deviation < 0)             return COLORS.dealRate.good;
+    return COLORS.dealRate.neutral;
+}
+
+// 其他指标通用颜色（中性亮度：偏差越大越亮，无好坏含义）
 export function getColor(deviation, threshold) {
     var absValue = Math.abs(deviation);
-    if (deviation > 0) {
-        if (absValue > threshold * 2) return COLORS.deviation.posStrong;
-        if (absValue > threshold)     return COLORS.deviation.posMid;
-        return COLORS.deviation.posWeak;
-    } else if (deviation < 0) {
-        if (absValue > threshold * 2) return COLORS.deviation.negStrong;
-        if (absValue > threshold)     return COLORS.deviation.negMid;
-        return COLORS.deviation.negWeak;
-    } else {
-        return COLORS.deviation.neutral;
-    }
+    if (absValue > threshold * 2) return COLORS.deviation.bright;
+    if (absValue > threshold)     return COLORS.deviation.mid;
+    if (absValue > 0)             return COLORS.deviation.dim;
+    return COLORS.deviation.neutral;
 }

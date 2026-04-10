@@ -2281,109 +2281,172 @@
   // 颜色系统
   var COLORS = {
     // 语义色
-    title: '#ffd700',
-    // 原型称号 - 金色
-    playerName: '#aaa',
-    // 风格标签 - 橙色
+    playerName: 'rgba(255,255,255,0.5)',
+    // 玩家昵称
+    tag: 'rgba(255,255,255,0.75)',
+    // 风格标签
     strategyTitle: '#4fc3f7',
-    // 策略建议标题 - 浅蓝
-    secondary: '#999',
-    // 次要说明文字
-    text: '#fff',
+    // 策略建议标题
+    text: '#ffffff',
     // 主文字
-    textMuted: '#ddd',
+    textMuted: 'rgba(255,255,255,0.6)',
     // 弱化文字
-    divider: 'rgba(255,255,255,0.2)',
+    divider: 'rgba(255,255,255,0.15)',
     // 分隔线
-    hint: '#666',
-    // 折叠提示文字
+    hint: 'rgba(255,255,255,0.25)',
+    // 折叠提示
 
-    // 偏差色（正偏差=红，负偏差=绿，表示相对段位基准的偏离）
-    deviation: {
-      posStrong: '#ff4444',
-      // 正偏差强（>2x threshold）
-      posMid: '#ff6b6b',
-      // 正偏差中
-      posWeak: '#ff9999',
-      // 正偏差弱
-      negStrong: '#44ff44',
-      // 负偏差强
-      negMid: '#51cf66',
-      // 负偏差中
-      negWeak: '#99ff99',
-      // 负偏差弱
-      neutral: '#aaa' // 无偏差
+    // 偏差色 - 危险导向方案
+    // 放铳率专用：高于基准=红（危险信号）
+    dealRate: {
+      strong: '#ff5252',
+      // 放铳率高 >2x threshold
+      mid: '#ff8a80',
+      // 放铳率高 >threshold
+      weak: '#ffcdd2',
+      // 放铳率略高
+      good: '#b2dfdb',
+      // 放铳率低于基准（好事）
+      neutral: 'rgba(255,255,255,0.7)'
     },
-    // 危险度色（同时用于策略建议优先级色阶）
-    danger: {
-      critical: '#ff1744',
-      // 9-10 极危险
-      high: '#ff9800',
-      // 7-8  高危
-      medium: '#ffc107',
-      // 5-6  中等
-      low: '#8bc34a',
-      // 3-4  较低
-      safe: '#4caf50' // 0-2  安全
-    }
+    // 其他指标：中性亮度，偏差越大越亮，无好坏含义
+    deviation: {
+      bright: '#ffffff',
+      // 大偏差
+      mid: 'rgba(255,255,255,0.8)',
+      // 中偏差
+      dim: 'rgba(255,255,255,0.5)',
+      // 小偏差
+      neutral: 'rgba(255,255,255,0.35)' // 无偏差
+    },
+    // 称号稀有度系统（卡牌风格渐变边框）
+    // 9种称号 × {渐变起止色, 发光色, 图标}
+    rarity: {
+      '钢铁战士': {
+        from: '#ffd700',
+        to: '#ff8f00',
+        glow: 'rgba(255,215,0,0.4)',
+        icon: '⚔️'
+      },
+      '狂战士': {
+        from: '#ff5252',
+        to: '#b71c1c',
+        glow: 'rgba(255,82,82,0.4)',
+        icon: '🔥'
+      },
+      '自爆兵': {
+        from: '#e040fb',
+        to: '#6a1b9a',
+        glow: 'rgba(224,64,251,0.4)',
+        icon: '💥'
+      },
+      '忍者': {
+        from: '#69f0ae',
+        to: '#00695c',
+        glow: 'rgba(105,240,174,0.4)',
+        icon: '🌙'
+      },
+      '上班族': {
+        from: '#448aff',
+        to: '#1565c0',
+        glow: 'rgba(68,138,255,0.4)',
+        icon: '📋'
+      },
+      '赌徒': {
+        from: '#ffab40',
+        to: '#e65100',
+        glow: 'rgba(255,171,64,0.4)',
+        icon: '🎲'
+      },
+      '乌龟': {
+        from: '#18ffff',
+        to: '#006064',
+        glow: 'rgba(24,255,255,0.4)',
+        icon: '🛡️'
+      },
+      '摆烂人': {
+        from: '#90a4ae',
+        to: '#37474f',
+        glow: 'rgba(144,164,174,0.3)',
+        icon: '💤'
+      },
+      '送分童子': {
+        from: '#bdbdbd',
+        to: '#424242',
+        glow: 'rgba(189,189,189,0.25)',
+        icon: '🎁'
+      },
+      'default': {
+        from: '#555',
+        to: '#222',
+        glow: 'rgba(100,100,100,0.2)',
+        icon: '❓'
+      }
+    },
+    // 策略建议优先级色
+    priority: {
+      high: '#ff5252',
+      mid: '#ffab40',
+      low: '#69f0ae'}
   };
 
   // 背景与阴影
   var BACKGROUNDS = {
-    card: 'rgba(0,0,0,0.75)',
-    cardDim: 'rgba(0,0,0,0.5)',
+    card: 'rgba(8,8,20,0.88)',
+    // 深暗底，二次元感
+    cardDim: 'rgba(8,8,20,0.65)',
     // 无数据状态
-    shadow: '0 0 10px rgba(0,0,0,0.5)'
+    shadow: '0 4px 20px rgba(0,0,0,0.7)'
   };
 
   // 布局
   var LAYOUT = {
     zIndex: 10000,
-    borderRadius: '8px',
-    padding: '6px 10px',
-    maxWidthCompact: '200px',
-    maxWidthExpanded: '280px',
+    borderRadius: '10px',
+    padding: '8px 12px',
+    maxWidthCompact: '210px',
+    maxWidthExpanded: '260px',
     // 四角定位（自己=左下，对手按计数器顺序分配）
     positions: {
       self: 'bottom: 140px; left: 10px;',
-      opponents: ['top: 140px; right: 10px;',
-      // 右上角
-      'top: 10px; right: 10px;',
-      // 右上角（靠上）
-      'top: 140px; left: 10px;' // 左上角
-      ]
+      opponents: ['top: 140px; right: 10px;', 'top: 10px; right: 10px;', 'top: 140px; left: 10px;']
     }
   };
 
   // 字体
   var TYPOGRAPHY = {
     title: {
-      size: '11px',
+      size: '12px',
       weight: 'bold'
     },
-    body: {
+    tag: {
       size: '9px'
+    },
+    data: {
+      size: '10px'
     },
     aux: {
       size: '8px'
     },
-    lineHeight: '1.4'
+    lineHeight: '1.5'
   };
 
-  // 根据偏差值计算颜色深浅
+  // 放铳率专用颜色（危险导向：高于基准=红）
+  function getDealRateColor(deviation, threshold) {
+    if (deviation > threshold * 2) return COLORS.dealRate.strong;
+    if (deviation > threshold) return COLORS.dealRate.mid;
+    if (deviation > 0) return COLORS.dealRate.weak;
+    if (deviation < 0) return COLORS.dealRate.good;
+    return COLORS.dealRate.neutral;
+  }
+
+  // 其他指标通用颜色（中性亮度：偏差越大越亮，无好坏含义）
   function getColor(deviation, threshold) {
     var absValue = Math.abs(deviation);
-    if (deviation > 0) {
-      if (absValue > threshold * 2) return COLORS.deviation.posStrong;
-      if (absValue > threshold) return COLORS.deviation.posMid;
-      return COLORS.deviation.posWeak;
-    } else if (deviation < 0) {
-      if (absValue > threshold * 2) return COLORS.deviation.negStrong;
-      if (absValue > threshold) return COLORS.deviation.negMid;
-      return COLORS.deviation.negWeak;
-    } else {
-      return COLORS.deviation.neutral;
-    }
+    if (absValue > threshold * 2) return COLORS.deviation.bright;
+    if (absValue > threshold) return COLORS.deviation.mid;
+    if (absValue > 0) return COLORS.deviation.dim;
+    return COLORS.deviation.neutral;
   }
 
   // HTML 转义工具函数
@@ -2392,6 +2455,17 @@
     var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // 获取称号对应的稀有度配置
+  function getRarity(称号) {
+    return COLORS.rarity[称号] || COLORS.rarity['default'];
+  }
+
+  // 构建渐变边框容器样式
+  function buildCardStyle(rarity) {
+    var bg = BACKGROUNDS.card;
+    return ['position: fixed', 'border: 1px solid transparent', 'background: linear-gradient(' + bg + ', ' + bg + ') padding-box, linear-gradient(135deg, ' + rarity.from + ', ' + rarity.to + ') border-box', 'box-shadow: 0 0 10px ' + rarity.glow + ', ' + BACKGROUNDS.shadow, 'color: ' + COLORS.text, 'padding: ' + LAYOUT.padding, 'border-radius: ' + LAYOUT.borderRadius, 'font-size: ' + TYPOGRAPHY.data.size, 'z-index: ' + LAYOUT.zIndex, 'pointer-events: auto', 'width: auto', 'max-width: ' + LAYOUT.maxWidthCompact, 'cursor: pointer', 'transition: box-shadow 0.2s ease'].join('; ') + '; ';
   }
 
   // 创建无数据提示UI
@@ -2403,7 +2477,7 @@
     var container = document.createElement('div');
     container.id = 'player-style-' + index;
     container.className = 'majsoul-style-info';
-    container.style.cssText = ['position: fixed', 'background: ' + BACKGROUNDS.cardDim, 'color: ' + COLORS.playerName, 'padding: ' + LAYOUT.padding, 'border-radius: ' + LAYOUT.borderRadius, 'font-size: ' + TYPOGRAPHY.body.size, 'z-index: ' + LAYOUT.zIndex, 'box-shadow: ' + BACKGROUNDS.shadow, 'pointer-events: none', 'width: auto', 'white-space: nowrap'].join('; ') + '; ';
+    container.style.cssText = ['position: fixed', 'background: ' + BACKGROUNDS.cardDim, 'border: 1px solid rgba(255,255,255,0.08)', 'color: ' + COLORS.playerName, 'padding: ' + LAYOUT.padding, 'border-radius: ' + LAYOUT.borderRadius, 'font-size: ' + TYPOGRAPHY.tag.size, 'z-index: ' + LAYOUT.zIndex, 'pointer-events: none', 'white-space: nowrap'].join('; ') + '; ';
     if (isSelf) {
       container.style.cssText += LAYOUT.positions.self;
     } else {
@@ -2412,22 +2486,21 @@
       container.style.cssText += LAYOUT.positions.opponents[window.majstyleJS.playerUICounter % 3];
       window.majstyleJS.playerUICounter++;
     }
-    var html = '<div style="color: ' + COLORS.playerName + '; font-size: ' + TYPOGRAPHY.body.size + ';">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</div>';
-    html += '<div style="color: ' + COLORS.hint + '; font-size: ' + TYPOGRAPHY.aux.size + '; margin-top: 2px;">无牌谱数据</div>';
-    container.innerHTML = html;
+    container.innerHTML = '<span style="color: ' + COLORS.playerName + ';">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>' + '<span style="color: rgba(255,255,255,0.2); margin-left: 6px;">无数据</span>';
     document.body.appendChild(container);
   }
 
-  // 创建玩家风格信息UI（增强版）
+  // 创建玩家风格信息UI
   function createPlayerInfoUI(index, 主称号, 标签, 数据, 偏差, baseline, nickname, isSelf, archetype, advice) {
     var existingUI = document.getElementById('player-style-' + index);
     if (existingUI) {
       existingUI.remove();
     }
+    var rarity = getRarity(主称号);
     var container = document.createElement('div');
     container.id = 'player-style-' + index;
     container.className = 'majsoul-style-info';
-    container.style.cssText = ['position: fixed', 'background: ' + BACKGROUNDS.card, 'color: ' + COLORS.text, 'padding: ' + LAYOUT.padding, 'border-radius: ' + LAYOUT.borderRadius, 'font-size: ' + TYPOGRAPHY.body.size, 'z-index: ' + LAYOUT.zIndex, 'box-shadow: ' + BACKGROUNDS.shadow, 'pointer-events: auto', 'width: auto', 'max-width: ' + LAYOUT.maxWidthCompact, 'cursor: pointer', 'transition: all 0.2s ease'].join('; ') + '; ';
+    container.style.cssText = buildCardStyle(rarity);
     if (isSelf) {
       container.style.cssText += LAYOUT.positions.self;
     } else {
@@ -2436,111 +2509,70 @@
       container.style.cssText += LAYOUT.positions.opponents[window.majstyleJS.playerUICounter % 3];
       window.majstyleJS.playerUICounter++;
     }
-    var titleText = archetype ? archetype.icon + ' ' + archetype.name : 主称号;
-    var playerNameHtml = '<span style="color: ' + COLORS.playerName + '; font-size: ' + TYPOGRAPHY.aux.size + ';">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
-    var titleStyle = 'font-weight: ' + TYPOGRAPHY.title.weight + '; font-size: ' + TYPOGRAPHY.title.size + '; color: ' + COLORS.title + '; margin-bottom: 4px;';
-    var dividerStyle = 'border-top: 1px solid ' + COLORS.divider + '; padding-top: 4px; margin-top: 4px;';
 
-    // ── 精简视图 ──
-    var compactHtml = '<div style="' + titleStyle + '">【' + escapeHtml(titleText) + '】' + playerNameHtml + '</div>';
-    if (advice && advice.进攻强度 && advice.防守强度) {
-      compactHtml += '<div style="font-size: ' + TYPOGRAPHY.body.size + '; line-height: ' + TYPOGRAPHY.lineHeight + ';">';
-      compactHtml += '⚔️ <span style="color: ' + advice.进攻强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.进攻强度.标签) + '</span> ';
-      compactHtml += '🛡️ <span style="color: ' + advice.防守强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.防守强度.标签) + '</span>';
-      compactHtml += '</div>';
-    }
-    if (advice && advice.危险度) {
-      compactHtml += '<div style="font-size: ' + TYPOGRAPHY.body.size + '; color: ' + getDangerColor(advice.危险度.分数) + '; margin-top: 2px;">';
-      compactHtml += advice.危险度.图标 + ' ' + advice.危险度.分数 + '/10';
-      compactHtml += '</div>';
-    }
-    compactHtml += '<div style="font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.hint + '; margin-top: 4px; text-align: center;">▼ 点击展开</div>';
+    // ── 标题行：图标 + 【称号】+ 昵称 ──
+    var titleHtml = '<div style="font-size: ' + TYPOGRAPHY.title.size + '; font-weight: ' + TYPOGRAPHY.title.weight + '; margin-bottom: 3px; white-space: nowrap;">';
+    titleHtml += '<span style="margin-right: 4px;">' + rarity.icon + '</span>';
+    titleHtml += '<span style="background: linear-gradient(90deg, ' + rarity.from + ', ' + rarity.to + '); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">【' + escapeHtml(主称号) + '】</span>';
+    titleHtml += '<span style="color: ' + COLORS.playerName + '; font-size: ' + TYPOGRAPHY.tag.size + '; font-weight: normal; margin-left: 4px;">' + escapeHtml(nickname) + (isSelf ? ' [你]' : '') + '</span>';
+    titleHtml += '</div>';
 
-    // ── 详细视图 ──
-    var detailHtml = '<div style="' + titleStyle + '">【' + escapeHtml(titleText) + '】' + playerNameHtml + '</div>';
-    if (advice && advice.进攻强度 && advice.防守强度) {
-      detailHtml += '<div style="margin-bottom: 4px; font-size: ' + TYPOGRAPHY.body.size + '; line-height: ' + TYPOGRAPHY.lineHeight + ';">';
-      detailHtml += '⚔️ <span style="color: ' + advice.进攻强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.进攻强度.标签) + '</span>';
-      if (advice.进攻强度.态度词) {
-        detailHtml += ' <span style="color: ' + COLORS.secondary + ';">(' + escapeHtml(advice.进攻强度.态度词) + ')</span>';
-      }
-      detailHtml += '<br>';
-      detailHtml += '🛡️ <span style="color: ' + advice.防守强度.颜色 + '; font-weight: bold;">' + escapeHtml(advice.防守强度.标签) + '</span>';
-      if (advice.防守强度.态度词) {
-        detailHtml += ' <span style="color: ' + COLORS.secondary + ';">(' + escapeHtml(advice.防守强度.态度词) + ')</span>';
-      }
-      detailHtml += '</div>';
+    // ── 标签行 ──
+    var tagHtml = '';
+    if (标签.length > 0) {
+      tagHtml = '<div style="color: ' + COLORS.tag + '; font-size: ' + TYPOGRAPHY.tag.size + '; margin-bottom: 5px; letter-spacing: 0.3px;">' + 标签.slice(0, 4).map(escapeHtml).join(' · ') + '</div>';
     }
-    if (advice && advice.危险度) {
-      detailHtml += '<div style="font-size: ' + TYPOGRAPHY.body.size + '; color: ' + getDangerColor(advice.危险度.分数) + '; margin-bottom: 4px;">';
-      detailHtml += advice.危险度.图标 + ' 危险度: ' + advice.危险度.分数 + '/10 - ' + escapeHtml(advice.危险度.标签);
-      detailHtml += '</div>';
-    }
-    detailHtml += '<div style="line-height: ' + TYPOGRAPHY.lineHeight + '; font-size: ' + TYPOGRAPHY.body.size + '; ' + dividerStyle + '">';
+
+    // ── 分隔线 ──
+    var divider = '<div style="border-top: 1px solid ' + COLORS.divider + '; margin-bottom: 4px;"></div>';
+
+    // ── 数据行 ──
     var 立直偏差 = (数据.立直率 - baseline.立直率).toFixed(1);
     var 副露偏差 = (数据.副露率 - baseline.副露率).toFixed(1);
     var 和牌偏差 = (数据.和牌率 - baseline.和牌率).toFixed(1);
     var 放铳偏差 = 偏差.放铳率.toFixed(1);
     var 打点偏差 = 偏差.打点.toFixed(0);
-    detailHtml += '<div>立直: <span style="color: ' + getColor(parseFloat(立直偏差), 2) + '">' + 数据.立直率.toFixed(1) + '% (' + (立直偏差 > 0 ? '+' : '') + 立直偏差 + '%)</span></div>';
-    detailHtml += '<div>副露: <span style="color: ' + getColor(parseFloat(副露偏差), 3) + '">' + 数据.副露率.toFixed(1) + '% (' + (副露偏差 > 0 ? '+' : '') + 副露偏差 + '%)</span></div>';
-    detailHtml += '<div>和牌: <span style="color: ' + getColor(parseFloat(和牌偏差), 1.5) + '">' + 数据.和牌率.toFixed(1) + '% (' + (和牌偏差 > 0 ? '+' : '') + 和牌偏差 + '%)</span></div>';
-    detailHtml += '<div>放铳: <span style="color: ' + getColor(parseFloat(放铳偏差), 1.5) + '">' + 数据.放铳率.toFixed(1) + '% (' + (放铳偏差 > 0 ? '+' : '') + 放铳偏差 + '%)</span></div>';
-    detailHtml += '<div>打点: <span style="color: ' + getColor(parseFloat(打点偏差), 300) + '">' + 数据.平均打点 + ' (' + (打点偏差 > 0 ? '+' : '') + 打点偏差 + ')</span></div>';
-    detailHtml += '</div>';
-    if (advice && advice.策略建议 && advice.策略建议.length > 0) {
-      detailHtml += '<div style="' + dividerStyle + '">';
-      detailHtml += '<div style="font-weight: bold; font-size: ' + TYPOGRAPHY.body.size + '; color: ' + COLORS.strategyTitle + '; margin-bottom: 4px;">策略建议:</div>';
-      for (var i = 0; i < Math.min(advice.策略建议.length, 3); i++) {
-        var strategy = advice.策略建议[i];
-        if (typeof strategy === 'string') {
-          detailHtml += '<div style="margin-bottom: 4px; font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.textMuted + ';">• ' + escapeHtml(strategy) + '</div>';
-        } else {
-          var priorityColor = getPriorityColor(strategy.优先级);
-          detailHtml += '<div style="margin-bottom: 4px; font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.textMuted + '; border-left: 2px solid ' + priorityColor + '; padding-left: 4px;">';
-          detailHtml += '• ' + escapeHtml(strategy.建议);
-          detailHtml += '</div>';
-        }
-      }
-      detailHtml += '</div>';
+    function dataRow(label, value, deviationStr, color) {
+      var sign = parseFloat(deviationStr) > 0 ? '+' : '';
+      return '<div style="display: flex; justify-content: space-between; line-height: ' + TYPOGRAPHY.lineHeight + ';">' + '<span style="color: rgba(255,255,255,0.45); margin-right: 8px;">' + label + '</span>' + '<span style="color: ' + color + ';">' + value + ' <span style="font-size: 8px; opacity: 0.8;">(' + sign + deviationStr + ')</span></span>' + '</div>';
     }
-    detailHtml += '<div style="font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.hint + '; margin-top: 4px; text-align: center;">▲ 点击收起</div>';
-    var html = '<div class="compact-view">' + compactHtml + '</div>';
-    html += '<div class="detail-view" style="display: none;">' + detailHtml + '</div>';
+    var dataHtml = '<div style="font-size: ' + TYPOGRAPHY.data.size + ';">' + dataRow('立直', 数据.立直率.toFixed(1) + '%', 立直偏差 + '%', getColor(parseFloat(立直偏差), 2)) + dataRow('副露', 数据.副露率.toFixed(1) + '%', 副露偏差 + '%', getColor(parseFloat(副露偏差), 3)) + dataRow('和牌', 数据.和牌率.toFixed(1) + '%', 和牌偏差 + '%', getColor(parseFloat(和牌偏差), 1.5)) + dataRow('放铳', 数据.放铳率.toFixed(1) + '%', 放铳偏差 + '%', getDealRateColor(parseFloat(放铳偏差), 1.5)) + dataRow('打点', String(数据.平均打点), 打点偏差, getColor(parseFloat(打点偏差), 300)) + '</div>';
+
+    // ── 精简视图 ──
+    var compactHtml = titleHtml + tagHtml + divider + dataHtml;
+
+    // ── 展开视图（+策略建议）──
+    var detailExtra = '';
+    if (advice && advice.策略建议 && advice.策略建议.length > 0) {
+      detailExtra += '<div style="border-top: 1px solid ' + COLORS.divider + '; margin-top: 5px; padding-top: 4px;">';
+      detailExtra += '<div style="font-size: ' + TYPOGRAPHY.tag.size + '; color: ' + COLORS.strategyTitle + '; margin-bottom: 3px; font-weight: bold;">策略</div>';
+      for (var i = 0; i < Math.min(advice.策略建议.length, 3); i++) {
+        var s = advice.策略建议[i];
+        var text = typeof s === 'string' ? s : s.建议;
+        var pColor = s.优先级 >= 7 ? COLORS.priority.high : s.优先级 >= 4 ? COLORS.priority.mid : COLORS.priority.low;
+        detailExtra += '<div style="font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.textMuted + '; border-left: 2px solid ' + pColor + '; padding-left: 5px; margin-bottom: 3px;">• ' + escapeHtml(text) + '</div>';
+      }
+      detailExtra += '</div>';
+    }
+    var hintStyle = 'font-size: ' + TYPOGRAPHY.aux.size + '; color: ' + COLORS.hint + '; text-align: right; margin-top: 3px;';
+    var html = '<div class="compact-view">' + compactHtml + '<div style="' + hintStyle + '">▾</div></div>';
+    html += '<div class="detail-view" style="display:none;">' + compactHtml + detailExtra + '<div style="' + hintStyle + '">▴</div></div>';
     container.innerHTML = html;
     document.body.appendChild(container);
     container.addEventListener('click', function (e) {
       e.stopPropagation();
-      var compactView = container.querySelector('.compact-view');
-      var detailView = container.querySelector('.detail-view');
-      if (compactView.style.display === 'none') {
-        compactView.style.display = 'block';
-        detailView.style.display = 'none';
+      var cv = container.querySelector('.compact-view');
+      var dv = container.querySelector('.detail-view');
+      if (cv.style.display === 'none') {
+        cv.style.display = 'block';
+        dv.style.display = 'none';
         container.style.maxWidth = LAYOUT.maxWidthCompact;
       } else {
-        compactView.style.display = 'none';
-        detailView.style.display = 'block';
+        cv.style.display = 'none';
+        dv.style.display = 'block';
         container.style.maxWidth = LAYOUT.maxWidthExpanded;
       }
     });
-  }
-
-  // 危险度颜色（使用设计令牌）
-  function getDangerColor(score) {
-    if (score >= 9) return COLORS.danger.critical;
-    if (score >= 7) return COLORS.danger.high;
-    if (score >= 5) return COLORS.danger.medium;
-    if (score >= 3) return COLORS.danger.low;
-    return COLORS.danger.safe;
-  }
-
-  // 优先级颜色（复用危险度色阶）
-  function getPriorityColor(priority) {
-    if (priority >= 8) return COLORS.danger.critical;
-    if (priority >= 6) return COLORS.danger.high;
-    if (priority >= 4) return COLORS.danger.medium;
-    if (priority >= 2) return COLORS.danger.low;
-    return COLORS.danger.safe;
   }
 
   // 控制台输出详细分析
