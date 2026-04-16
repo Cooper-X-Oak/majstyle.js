@@ -1,6 +1,6 @@
 {
   "name": "majstyle-userscript",
-  "version": "2.2.2",
+  "version": "2.2.3-beta.1",
   "type": "module",
   "private": true,
   "description": "雀魂金玉四麻对手风格实时分析助手",

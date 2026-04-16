@@ -1,5 +1,50 @@
 # CHANGELOG
 
+## [2.2.3-beta] - 2026-04-11 (稳定化测试版)
+
+### 修复
+
+**BUG-06：信息卡位置错位，对不上人物**
+
+- 根本原因：使用全局递增计数器 `playerUICounter` 分配位置，导致位置与座位不对应
+- 修复：改用座位索引系统（`src/ui/player-info-card-enhanced.js`）
+  - 记录自己的座位索引到 `window.majstyleJS.selfSeatIndex`
+  - 对手位置根据相对座位偏移量计算：`(index - selfSeatIndex + 4) % 4 - 1`
+  - 确保自己固定在左下角，对手按相对位置分配到其他三个角
+
+**BUG-07：小局结束时信息卡就会关闭**
+
+- 根本原因：`isInGame()` 检查 `DesktopMgr.gameing`，这是小局状态标志
+- 修复：改为检查整桌游戏状态（`src/game/game-bridge.js`）
+  - 只检查 `GameMgr.Inst.ingame`（整桌游戏状态）
+  - 同时检查 `player_datas` 是否存在
+  - `ingame=true` 在整桌游戏期间保持，直到退出牌桌
+
+**BUG-08：无自己的信息卡显示**
+
+- 根本原因：与 BUG-06 相同，位置分配逻辑混乱
+- 修复：座位索引系统确保自己的卡片正确显示在左下角
+
+### 新增
+
+**功能：点击信息卡全局同步折叠/展开**
+
+- 启用卡片点击交互（`pointer-events: auto`）
+- 添加全局折叠状态管理 `window.majstyleJS.cardsCollapsed`
+- 保存每个卡片的原始数据到 `window.majstyleJS.cardsData[index]`
+- 点击任意卡片，所有卡片同步折叠/展开
+- 折叠态只显示图标，展开态显示完整数据
+
+### 技术细节
+
+- 修改文件：
+  - `src/ui/player-info-card-enhanced.js` - 核心UI逻辑
+  - `src/game/game-bridge.js` - 游戏状态判断
+  - `src/ui/ui-manager.js` - UI管理器
+- 详见 `docs/development/bug-fix-20250603.md`
+
+---
+
 ## [2.2.2] - 2026-04-11 (bug-agent 修复版)
 
 ### 修复

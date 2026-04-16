@@ -11,11 +11,13 @@ import { getPlayerExtendedStats } from './api/amae-koromo.js';
     var processingCache = new Map();
     var throttleTimer = null;
     var observer = null;
+    var fallbackInterval = null;
 
     // 清理资源
     function cleanup() {
         if (observer) { observer.disconnect(); observer = null; }
         if (throttleTimer) { clearTimeout(throttleTimer); throttleTimer = null; }
+        if (fallbackInterval) { clearInterval(fallbackInterval); fallbackInterval = null; }
         processingCache.clear();
     }
 
@@ -160,8 +162,13 @@ import { getPlayerExtendedStats } from './api/amae-koromo.js';
         }, 1000);
     }
 
-    // MutationObserver：对局中 DOM 持续变化（牌局动画等），足以驱动检测
+    // MutationObserver：有 DOM 变化时快速响应（如 monitor 工具、大厅 UI 等）
     observer = new MutationObserver(throttledCheck);
     observer.observe(document.body, { childList: true, subtree: true });
+
+    // 兜底轮询：游戏是 canvas 渲染，document.body 可能长时间无 DOM 变化
+    // isInGame() 守卫确保加载阶段不会触碰 view.DesktopMgr，无 Proxy 副作用
+    fallbackInterval = setInterval(checkAndProcess, 3000);
+
     window.majstyleJS.status = 'observer-ready';
 })();

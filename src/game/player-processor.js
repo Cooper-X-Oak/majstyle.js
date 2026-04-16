@@ -1,181 +1,237 @@
-import { getPlayerStats, getPlayerExtendedStats } from '../api/amae-koromo.js';
-import { getBaseline } from '../config/constants.js';
-import { analyzeStyle } from '../analysis/style-analyzer.js';
-import { generateAdvice } from '../analysis/advice-generator.js';
-import { createPlayerInfoUI, createNoDataUI } from '../ui/player-info-card-enhanced.js';
+import { getPlayerStats, getPlayerExtendedStats } from "../api/amae-koromo.js";
+import { getBaseline } from "../config/constants.js";
+import { analyzeStyle } from "../analysis/style-analyzer.js";
+import { generateAdvice } from "../analysis/advice-generator.js";
+import {
+  createPlayerInfoUI,
+  createNoDataUI,
+} from "../ui/player-info-card-enhanced.js";
+import {
+  extractStats,
+  validateStats,
+  printStatsSummary,
+} from "./stats-extractor.js";
 
 // 控制台输出详细分析
-export function printAnalysis(playerData, analysis, baseline, index, isSelf, stats) {
-    'use strict';
+export function printAnalysis(
+  playerData,
+  analysis,
+  advice,
+  baseline,
+  index,
+  isSelf,
+  stats,
+) {
+  "use strict";
 
-    var 主称号 = analysis.主称号;
-    var 标签 = analysis.标签;
-    var 数据 = analysis.数据;
-    var 偏差 = analysis.偏差;
-    var advice = generateAdvice(analysis, stats);
+  var 主称号 = analysis.主称号;
+  var 标签 = analysis.标签;
+  var 数据 = analysis.数据;
+  var 偏差 = analysis.偏差;
 
-    // 传递完整的 advice 对象到 UI
-    createPlayerInfoUI(
-        index,
-        主称号,
-        标签,
-        数据,
-        偏差,
-        baseline,
-        playerData.nickname,
-        isSelf,
-        advice.原型,
-        advice
+  // 创建 UI（传入 advice 对象）
+  createPlayerInfoUI(
+    index,
+    主称号,
+    标签,
+    数据,
+    偏差,
+    baseline,
+    playerData.nickname,
+    isSelf,
+    advice,
+    stats,
+  );
+
+  var 标签文本 = 标签.length > 0 ? " [" + 标签.join(", ") + "]" : "";
+  console.log("  段位: " + baseline.name + " | 称号: " + 主称号 + 标签文本);
+  console.log("  【进攻】");
+  console.log(
+    "    立直率: " +
+      数据.立直率.toFixed(1) +
+      "% (" +
+      (数据.立直率 - baseline.立直率).toFixed(1) +
+      "%)",
+  );
+  console.log(
+    "    副露率: " +
+      数据.副露率.toFixed(1) +
+      "% (" +
+      (数据.副露率 - baseline.副露率).toFixed(1) +
+      "%)",
+  );
+  console.log(
+    "    和牌率: " +
+      数据.和牌率.toFixed(1) +
+      "% (" +
+      (数据.和牌率 - baseline.和牌率).toFixed(1) +
+      "%)",
+  );
+  console.log(
+    "    平均打点: " + 数据.平均打点 + " (" + 偏差.打点.toFixed(0) + ")",
+  );
+  console.log("  【防守】");
+  console.log(
+    "    放铳率: " +
+      数据.放铳率.toFixed(1) +
+      "% (" +
+      偏差.放铳率.toFixed(1) +
+      "%)",
+  );
+
+  // 输出建议系统信息
+  if (advice) {
+    console.log("  【危险度】");
+    console.log(
+      "    评分: " +
+        advice.危险度.分数 +
+        "/10 " +
+        advice.危险度.图标 +
+        " " +
+        advice.危险度.标签,
+    );
+    console.log("    置信度: " + advice.危险度.置信度);
+
+    if (advice.原型) {
+      console.log("  【玩家原型】");
+      console.log("    " + advice.原型.icon + " " + advice.原型.name);
+    }
+
+    console.log("  【综合实力】");
+    console.log(
+      "    进攻强度: Lv." +
+        advice.进攻强度.等级 +
+        " (" +
+        advice.进攻强度.总分 +
+        "/100)",
+    );
+    console.log(
+      "    防守强度: Lv." +
+        advice.防守强度.等级 +
+        " (" +
+        advice.防守强度.总分 +
+        "/100)",
     );
 
-    var 标签文本 = 标签.length > 0 ? ' [' + 标签.join(', ') + ']' : '';
-    console.log('  段位: ' + baseline.name + ' | 称号: ' + 主称号 + 标签文本);
-    console.log('  ');
-
-    // 输出强度信息
-    if (advice.进攻强度 && advice.防守强度) {
-        console.log('  【强度评估】');
-        console.log('    ⚔️ 进攻强度: ' + advice.进攻强度.标签 + ' (' + advice.进攻强度.态度词 + ')');
-        console.log('       总分: ' + advice.进攻强度.总分.toFixed(1) + '/100');
-        console.log('       立直进攻: ' + advice.进攻强度.子维度.立直进攻.toFixed(1) + '/10');
-        console.log('       副露进攻: ' + advice.进攻强度.子维度.副露进攻.toFixed(1) + '/10');
-        console.log('       速度: ' + advice.进攻强度.子维度.速度.toFixed(1) + '/10');
-        console.log('       打点: ' + advice.进攻强度.子维度.打点.toFixed(1) + '/10');
-        console.log('  ');
-        console.log('    🛡️ 防守强度: ' + advice.防守强度.标签 + ' (' + advice.防守强度.态度词 + ')');
-        console.log('       总分: ' + advice.防守强度.总分.toFixed(1) + '/100');
-        console.log('       放铳控制: ' + advice.防守强度.子维度.放铳控制.toFixed(1) + '/10');
-        console.log('       大牌防守: ' + advice.防守强度.子维度.大牌防守.toFixed(1) + '/10');
-        console.log('       隐蔽性: ' + advice.防守强度.子维度.隐蔽性.toFixed(1) + '/10');
-        console.log('       立直防守: ' + advice.防守强度.子维度.立直防守.toFixed(1) + '/10');
-        console.log('  ');
+    if (advice.策略建议 && advice.策略建议.length > 0) {
+      console.log("  【策略建议】(前3条)");
+      for (var i = 0; i < Math.min(3, advice.策略建议.length); i++) {
+        var suggestion = advice.策略建议[i];
+        console.log(
+          "    " +
+            (i + 1) +
+            ". [P" +
+            suggestion.优先级 +
+            "] " +
+            suggestion.建议,
+        );
+      }
     }
-
-    console.log('  【进攻】相对' + baseline.name + '平均');
-    console.log('    立直率: ' + 数据.立直率.toFixed(1) + '% (' + (数据.立直率 - baseline.立直率).toFixed(1) + '%)');
-    console.log('    副露率: ' + 数据.副露率.toFixed(1) + '% (' + (数据.副露率 - baseline.副露率).toFixed(1) + '%)');
-    console.log('    和牌率: ' + 数据.和牌率.toFixed(1) + '% (' + (数据.和牌率 - baseline.和牌率).toFixed(1) + '%)');
-    console.log('    平均打点: ' + 数据.平均打点 + ' (' + 偏差.打点.toFixed(0) + ')');
-    console.log('    进攻意愿: ' + 数据.进攻意愿.toFixed(1) + '% (' + 偏差.进攻意愿.toFixed(1) + '%)');
-    console.log('    进攻效率: ' + 数据.进攻效率.toFixed(1) + '%');
-    console.log('  ');
-    console.log('  【防守】');
-    console.log('    放铳率: ' + 数据.放铳率.toFixed(1) + '% (' + 偏差.放铳率.toFixed(1) + '%)');
-    console.log('  ');
-    console.log('  【立直质量】');
-    console.log('    追立率: ' + 数据.追立率.toFixed(1) + '%');
-    console.log('    先制率: ' + 数据.先制率.toFixed(1) + '%');
-    console.log('    立直好型: ' + 数据.立直好型.toFixed(1) + '%');
-    console.log('  ');
-    console.log('  【策略建议】');
-    console.log('    危险度: ' + advice.危险度.图标 + ' ' + advice.危险度.分数 + '/10 - ' + advice.危险度.标签 + ' (置信度: ' + advice.危险度.置信度 + ')');
-    if (advice.原型) {
-        console.log('    玩家原型: ' + advice.原型.icon + ' ' + advice.原型.name + ' (匹配度: ' + advice.原型.score.toFixed(1) + ')');
-    }
-    console.log('  ');
-    console.log('    综合实力:');
-    console.log('      净打点效率: ' + advice.综合实力.净打点效率 + ' (' + advice.综合实力.评价 + ')');
-    console.log('      打点效率: ' + advice.综合实力.打点效率 + ' | 铳点损失: ' + advice.综合实力.铳点损失);
-    console.log('  ');
-    console.log('    进攻特征:');
-    console.log('      速度: ' + advice.速度评估.速度类型 + ' (和了巡数: ' + advice.速度评估.和了巡数 + ')');
-    console.log('      隐蔽性: ' + advice.隐蔽性.评价 + ' (默听率: ' + advice.隐蔽性.默听率 + ')');
-    console.log('  ');
-    console.log('    立直质量:');
-    console.log('      ' + advice.立直质量.质量评价 + ' (收支: ' + advice.立直质量.立直收支 + ')');
-    console.log('      和牌率: ' + advice.立直质量.立直后和牌率 + ' | 放铳率: ' + advice.立直质量.立直后放铳率);
-    console.log('  ');
-    console.log('    副露质量:');
-    console.log('      ' + advice.副露质量.质量评价 + ' (和牌率: ' + advice.副露质量.副露后和牌率 + ')');
-    console.log('  ');
-    console.log('    策略建议:');
-    advice.策略建议.forEach(function(tip, index) {
-        if (typeof tip === 'string') {
-            console.log('      ' + (index + 1) + '. ' + tip);
-        } else {
-            console.log('      ' + (index + 1) + '. [' + tip.来源 + '] ' + tip.建议);
-            console.log('         置信度: ' + tip.置信度 + ' | 优先级: ' + tip.优先级);
-            if (tip.理由 && tip.理由.触发条件) {
-                console.log('         触发条件: ' + tip.理由.触发条件);
-            }
-        }
-    });
+  }
 }
 
 // 处理单个玩家的完整流程
 export function processPlayer(p, myId, index) {
-    var isSelf = p.account_id === myId;
+  "use strict";
 
-    console.log('');
-    console.log('座位' + index + ': ' + p.nickname + ' (ID:' + p.account_id + ')' + (isSelf ? ' [你]' : ''));
+  var isSelf = p.account_id === myId;
 
-    if (p.account_id <= 10) {
-        console.log('  [电脑]');
-        return Promise.resolve();
-    }
+  console.log("");
+  console.log(
+    "座位" +
+      index +
+      ": " +
+      p.nickname +
+      " (ID:" +
+      p.account_id +
+      ")" +
+      (isSelf ? " [你]" : ""),
+  );
 
-    console.log('  [开始] 请求玩家数据...');
+  if (p.account_id <= 10) {
+    console.log("  [电脑]");
+    return Promise.resolve();
+  }
 
-    return getPlayerStats(p.account_id)
-        .then(function(basicStats) {
-            console.log('  [成功] 获取基础数据');
+  // level.id 直接从游戏窗口取，无需等 API
+  var levelId = p.level ? p.level.id : null;
+  var baseline = getBaseline(levelId);
 
-            // 验证响应结构
-            if (!basicStats || typeof basicStats !== 'object') {
-                throw { type: 'validation', message: '无效的基础数据响应' };
-            }
+  console.log("  [开始] 并行请求 player_stats + player_extended_stats...");
 
-            var levelId = basicStats.level ? basicStats.level.id : null;
-            var baseline = getBaseline(levelId);
+  return Promise.all([
+    getPlayerStats(p.account_id),
+    getPlayerExtendedStats(p.account_id),
+  ])
+    .then(function (results) {
+      var basicStats = results[0];
+      var extStats = results[1];
 
-            console.log('  [开始] 请求扩展数据...');
+      // 验证响应结构
+      if (!basicStats || typeof basicStats !== "object") {
+        throw { type: "validation", message: "无效的基础数据响应" };
+      }
+      if (
+        !extStats ||
+        typeof extStats !== "object" ||
+        typeof extStats.count !== "number"
+      ) {
+        throw { type: "validation", message: "无效的扩展数据响应" };
+      }
 
-            return getPlayerExtendedStats(p.account_id)
-                .then(function(extStats) {
-                    console.log('  [成功] 获取扩展数据');
+      console.log("  [成功] 获取数据完成");
 
-                    // 验证扩展数据结构
-                    if (!extStats || typeof extStats !== 'object' || typeof extStats.count !== 'number') {
-                        throw { type: 'validation', message: '无效的扩展数据响应' };
-                    }
+      if (extStats.count < 50) {
+        console.log("  数据不足（仅" + extStats.count + "局），无法分析");
+        createNoDataUI(index, p.nickname, isSelf);
+        return;
+      }
 
-                    if (extStats.count < 50) {
-                        console.log('  数据不足（仅' + extStats.count + '局），无法分析');
-                        createNoDataUI(index, p.nickname, isSelf);
-                        return;
-                    }
+      // ==================== 使用标准化数据提取层 ====================
+      console.log("  [开始] 提取标准化数据...");
+      var stats = extractStats(basicStats, extStats);
 
-                    // 调试：打印收到的字段
-                    console.log('  [调试] API 返回的字段数量:', Object.keys(extStats).length);
-                    console.log('  [调试] 关键字段检查:');
-                    console.log('    净打点效率:', extStats['净打点效率']);
-                    console.log('    默听率:', extStats['默听率']);
-                    console.log('    立直收支:', extStats['立直收支']);
-                    console.log('    和了巡数:', extStats['和了巡数']);
+      // 验证数据完整性
+      var validation = validateStats(stats);
+      if (!validation.valid) {
+        console.log(
+          "  [警告] 数据不完整，缺失字段:",
+          validation.missing.join(", "),
+        );
+      }
 
-                    var analysis = analyzeStyle(extStats, baseline);
-                    printAnalysis(p, analysis, baseline, index, isSelf, extStats);
-                });
-        })
-        .catch(function(e) {
-            var errorMsg = '  数据获取失败: ';
-            if (e && typeof e === 'object') {
-                if (e.type === 'rate_limit') {
-                    errorMsg += 'API速率限制，请稍后重试';
-                } else if (e.type === 'timeout') {
-                    errorMsg += '请求超时（已重试）';
-                    console.log('  [调试] 超时URL:', e.url);
-                } else if (e.type === 'network') {
-                    errorMsg += '网络连接失败';
-                } else if (e.type === 'validation') {
-                    errorMsg += e.message;
-                } else {
-                    errorMsg += e.message || String(e);
-                }
-            } else {
-                errorMsg += String(e);
-            }
-            console.log(errorMsg);
-            createNoDataUI(index, p.nickname, isSelf);
-        });
+      // 打印数据摘要
+      printStatsSummary(stats);
+
+      console.log("  [开始] 风格分析...");
+      var analysis = analyzeStyle(stats, baseline);
+
+      console.log("  [开始] 生成建议...");
+      var advice = generateAdvice(analysis, stats);
+
+      console.log("  [完成] 分析完成");
+
+      printAnalysis(p, analysis, advice, baseline, index, isSelf, stats);
+    })
+    .catch(function (e) {
+      var errorMsg = "  数据获取失败: ";
+      if (e && typeof e === "object") {
+        if (e.type === "rate_limit") {
+          errorMsg += "API速率限制，请稍后重试";
+        } else if (e.type === "timeout") {
+          errorMsg += "请求超时（已重试）";
+          console.log("  [调试] 超时URL:", e.url);
+        } else if (e.type === "network") {
+          errorMsg += "网络连接失败";
+        } else if (e.type === "validation") {
+          errorMsg += e.message;
+        } else {
+          errorMsg += e.message || String(e);
+        }
+      } else {
+        errorMsg += String(e);
+      }
+      console.log(errorMsg);
+      createNoDataUI(index, p.nickname, isSelf);
+    });
 }
